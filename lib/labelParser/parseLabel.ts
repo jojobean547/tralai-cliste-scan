@@ -14,7 +14,7 @@ import { profileFor, type StoreProfile } from './storeProfiles';
 export type { OcrPiece, ParsedLabel };
 
 // Bump this whenever the rules change, so test-mode records say which rules produced them.
-export const PARSER_VERSION = '1.0.0';
+export const PARSER_VERSION = '1.1.0';
 
 type Piece = {
   text: string;
@@ -77,8 +77,9 @@ const MULTIPACK_PATTERN = /(?<!€)\b(\d{1,2}\s*x\s*\d+(?:[.,]\d+)?\s*(?:kgs?|gr
 const WEIGHT_PATTERN = /(?<!€)(?<!€ )\b(\d+(?:[.,]\d+)?)\s*(kgs?|grms?|gms?|g|mls?|cls?|ltrs?|l|packs?)\b/i;
 
 // SHARED (G1): a line that states a price per kg / litre / metre is a unit price,
-// never the shelf price or the club price. Catches OCR variants like "€17.89per ko".
-const UNIT_LINE = /\d\s*per|\bper\b|kgm\b|ltr\b|\/\s*(?:kgm?|l|lt)\b/i;
+// never the shelf price or the club price. Catches OCR variants like "€17.89per ko",
+// and Lidl's "1KG = 8.32" and "100 sheets = 1.35" (1.1.0).
+const UNIT_LINE = /\d\s*per|\bper\b|kgm\b|ltr\b|\/\s*(?:kgm?|l|lt)\b|=/i;
 const isUnitLine = (text: string) => UNIT_LINE.test(text);
 
 // SHARED (G4): Irish shelves only use "cheapest free" for 3 for 2.
@@ -98,6 +99,17 @@ function classifyDeal(qtyStr: string, valueStr: string): ['price' | 'qty', numbe
 }
 
 const sameColumn = (p: Piece, q: Piece) => Math.abs(p.cx - q.cx) < Math.max(p.w, q.w);
+
+// SHARED (G8, 1.1.0): two pieces are on the same row when they sit side by side
+// at the same height. The capstone only checked the height, so small print directly
+// UNDER a big price (Lidl's "100 sheets = 0.25") counted as the same row and the
+// price was skipped. Now pieces stacked above each other never count as one row.
+const sameRow = (p: Piece, q: Piece) => {
+  const sameHeight = Math.abs(p.cy - q.cy) < Math.max(p.height, q.height) / 2; // capstone rule
+  const xOverlap = Math.min(p.x1, q.x1) - Math.max(p.x0, q.x0);
+  const sideBySide = xOverlap < 0.5 * Math.min(p.w, q.w);
+  return sameHeight && sideBySide;
+};
 
 // PROFILE (Tesco): join "€8" (or "€3.") with the small cents number printed to
 // its right, "35", into one piece "€8.35". The cents sit within the height of
@@ -211,7 +223,7 @@ export function parseLabel(ocrResult: OcrPiece[], store: string): ParsedLabel {
       const below: [Piece, number][] = [];
       for (const p of pieces) {
         if (p.cy <= f.cy || !sameColumn(p, f) || isUnitLine(p.text)) continue; // SHARED (G1)
-        const pm = /(\d{1,3}\.\d{2})/.exec(p.text);
+        const pm = search(PRICE_PATTERN, p.text); // SHARED (G5, 1.1.0): "End 15.07.26" is a date, not €15.07
         const wm = search(WHOLE_EURO_PATTERN, p.text);
         if (pm) below.push([p, Number(pm[1])]);
         else if (/^\d{3}$/.test(p.text.trim())) below.push([p, parseInt(p.text.trim(), 10) / 100]);
@@ -271,7 +283,7 @@ export function parseLabel(ocrResult: OcrPiece[], store: string): ParsedLabel {
       if (
         p === kwPiece || !sameColumn(p, kwPiece) || p.text.includes('=') ||
         isUnitLine(p.text) || // SHARED (G1)
-        eqRows.some((q) => Math.abs(p.cy - q.cy) < Math.max(p.height, q.height) / 2)
+        eqRows.some((q) => sameRow(p, q))
       ) continue;
       const val = piecePrice(p);
       if (val === null || val === dealPriceAmount || val === output.deposit_price || val === output.unit_price) continue;
@@ -302,28 +314,35 @@ export function parseLabel(ocrResult: OcrPiece[], store: string): ParsedLabel {
   if (textPieces.length > 0) output.item_name = textPieces.join(' ');
 
   // ----- 7. Shelf price: the biggest price on the label -----
-  const exclude = [output.unit_price, output.clubcard_price, dealPriceAmount, output.deposit_price];
+  // SHARED (G6, 1.1.0): unit-price lines are skipped directly (G1), so a shelf price that
+  // happens to equal the unit price (a 1 kg bag, a 1 litre multipack) is no longer thrown away.
+  const exclude = [output.clubcard_price, dealPriceAmount, output.deposit_price];
   const guardRows = pieces.filter((g) => /\bsave\b|\btotal\b/i.test(g.text));
-  const rowGuarded = (p: Piece, rows: Piece[]) =>
-    rows.some((g) => Math.abs(p.cy - g.cy) < Math.max(p.height, g.height) / 2);
+  const rowGuarded = (p: Piece, rows: Piece[]) => rows.some((g) => sameRow(p, g));
 
-  const priceCandidates: { value: number; height: number }[] = [];
+  const priceCandidates: { value: number; height: number; piece: Piece; whole: boolean }[] = [];
   for (const p of pieces) {
     const pl = p.text.toLowerCase();
     if (pl.includes('save') || pl.includes('total') || rowGuarded(p, guardRows) || isUnitLine(p.text)) continue;
     for (const pm of findAll(PRICE_PATTERN, p.text)) {
       const val = Number(pm[1]);
-      if (!exclude.includes(val)) priceCandidates.push({ value: val, height: p.height });
+      if (!exclude.includes(val)) priceCandidates.push({ value: val, height: p.height, piece: p, whole: false });
     }
     for (const pm of findAll(CENTS_PRICE_PATTERN, p.text)) {
       const val = pyRound(parseInt(pm[1], 10) / 100, 2);
-      if (!exclude.includes(val)) priceCandidates.push({ value: val, height: p.height });
+      if (!exclude.includes(val)) priceCandidates.push({ value: val, height: p.height, piece: p, whole: false });
     }
     for (const pm of findAll(WHOLE_EURO_PATTERN, p.text)) {
       const val = Number(pm[1]);
-      if (!exclude.includes(val)) priceCandidates.push({ value: val, height: p.height });
+      if (!exclude.includes(val)) priceCandidates.push({ value: val, height: p.height, piece: p, whole: true });
     }
   }
+  // SHARED (G7, 1.1.0): "€3" beside "3.59" on the same row is a partial reading of €3.59,
+  // not a second price, so the whole-euro version is dropped.
+  const isPartial = (c: (typeof priceCandidates)[number]) =>
+    c.whole && priceCandidates.some((d) => !d.whole && Math.trunc(d.value) === c.value && d.piece !== c.piece && sameRow(c.piece, d.piece));
+  const partials = priceCandidates.filter(isPartial);
+  for (const c of partials) priceCandidates.splice(priceCandidates.indexOf(c), 1);
   if (priceCandidates.length > 0) {
     priceCandidates.sort((a, b) => b.height - a.height);
     output.standard_price = priceCandidates[0].value;
