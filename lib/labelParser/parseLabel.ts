@@ -13,8 +13,15 @@ import { profileFor, type StoreProfile } from './storeProfiles';
 
 export type { OcrPiece, ParsedLabel };
 
+// What the app gets back: the scored capstone fields, plus hints for the confirm card.
+export type ParseResult = ParsedLabel & {
+  // A deal was spotted ("3 for") but the rest couldn't be read: the quantity, for the
+  // confirm card to pre-fill. Never guessed into the deal fields themselves (1.2.0).
+  deal_qty_hint: number | null;
+};
+
 // Bump this whenever the rules change, so test-mode records say which rules produced them.
-export const PARSER_VERSION = '1.1.0';
+export const PARSER_VERSION = '1.2.0';
 
 type Piece = {
   text: string;
@@ -145,7 +152,7 @@ function joinSuperscriptCents(pieces: Piece[]): Piece[] {
 // The parser
 // ---------------------------------------------------------------
 
-export function parseLabel(ocrResult: OcrPiece[], store: string): ParsedLabel {
+export function parseLabel(ocrResult: OcrPiece[], store: string): ParseResult {
   const profile: StoreProfile = profileFor(store);
   const output = emptyOutput();
 
@@ -210,6 +217,7 @@ export function parseLabel(ocrResult: OcrPiece[], store: string): ParsedLabel {
   }
 
   // 2c. Deal stacked vertically: "2" / "for" / "€7"
+  let dealQtyHint: number | null = null;
   if (output.deal_type === null) {
     for (const f of pieces) {
       const am = /^(?:(\d{1,2})\s*)?for$/i.exec(f.text.trim());
@@ -234,6 +242,7 @@ export function parseLabel(ocrResult: OcrPiece[], store: string): ParsedLabel {
         setDeal(classifyDeal(qty, priceVal.toFixed(2)));
         break;
       }
+      dealQtyHint ??= parseInt(qty, 10); // "3 for" with nothing readable after it
     }
   }
 
@@ -371,5 +380,6 @@ export function parseLabel(ocrResult: OcrPiece[], store: string): ParsedLabel {
     }
   }
 
-  return output;
+  const dealSeen = output.deal_type !== null;
+  return { ...output, deal_qty_hint: dealSeen ? null : dealQtyHint };
 }
