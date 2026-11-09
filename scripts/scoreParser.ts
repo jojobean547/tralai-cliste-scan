@@ -1,13 +1,14 @@
-// Scores the TypeScript parser against the ground truth, per store and per field,
-// using the capstone's frozen scorer.
+// Scores the app's parser against the ground truth, per store and per field,
+// using the capstone's frozen scorer, and compares it with the capstone baseline.
 //
 // Run from the project folder:
 //   npx tsx scripts/scoreParser.ts            summary tables
-//   npx tsx scripts/scoreParser.ts Dunnes     also list every Dunnes label it got wrong
+//   npx tsx scripts/scoreParser.ts Dunnes     also list every Dunnes label still wrong
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { extractFromOcr, type OcrPiece } from '../lib/labelParser/extractFromOcr';
+import { extractFromOcr, type OcrPiece, type ParsedLabel } from '../lib/labelParser/extractFromOcr';
+import { PARSER_VERSION, parseLabel } from '../lib/labelParser/parseLabel';
 import { readCsv } from './csv';
 import { fieldMatch } from './frozenScorer';
 
@@ -21,58 +22,74 @@ const DEAL_FIELDS = ['deal_type', 'deal_qty', 'deal_price'];
 const APP_FIELDS = ['standard_price', 'clubcard_price', ...DEAL_FIELDS];
 
 const ocr: Record<string, OcrPiece[]> = JSON.parse(readFileSync(join(DATA, 'p2b_ocr_raw.json'), 'utf-8'));
-const truth = readCsv(join(DATA, 'ground_truth.csv'));
+const capstoneTruth = readCsv(join(DATA, 'ground_truth_capstone.csv')); // frozen, never edited
+const truth = readCsv(join(DATA, 'ground_truth.csv'));                  // app copy, see ground_truth_changes.md
 
-type Scored = {
-  gt: Record<string, string>;
-  res: Record<string, unknown>;
-  ok: Record<string, boolean>;
-};
+type Scored = { gt: Record<string, string>; res: Record<string, unknown>; ok: Record<string, boolean> };
 
-const scored: Scored[] = truth.map((gt) => {
-  const res = extractFromOcr(ocr[gt.image_filename] ?? []) as unknown as Record<string, unknown>;
-  const ok: Record<string, boolean> = {};
-  for (const f of ALL_FIELDS) ok[f] = fieldMatch(gt, res as Record<string, never>, f);
-  ok.deal = DEAL_FIELDS.every((f) => ok[f]);
-  ok.whole = APP_FIELDS.every((f) => ok[f]);
-  return { gt, res, ok };
-});
+function score(rows: Record<string, string>[], parse: (gt: Record<string, string>) => ParsedLabel): Scored[] {
+  return rows.map((gt) => {
+    const res = parse(gt) as unknown as Record<string, never>;
+    const ok: Record<string, boolean> = {};
+    for (const f of ALL_FIELDS) ok[f] = fieldMatch(gt, res, f);
+    ok.deal = DEAL_FIELDS.every((f) => ok[f]);
+    ok.whole = APP_FIELDS.every((f) => ok[f]);
+    return { gt, res, ok };
+  });
+}
 
-const pct = (part: number, total: number) => (total === 0 ? '   –  ' : `${((100 * part) / total).toFixed(1).padStart(5)}%`);
-const rate = (rows: Scored[], key: string) => pct(rows.filter((r) => r.ok[key]).length, rows.length);
+const baselineParse = (gt: Record<string, string>) => extractFromOcr(ocr[gt.image_filename] ?? []);
+const appParse = (gt: Record<string, string>) => parseLabel(ocr[gt.image_filename] ?? [], gt.store);
 
-// ---- 1. Check the scorer port against the capstone notebook ----
-const holdout = scored.filter((r) => r.gt.dev_set.toUpperCase() !== 'TRUE');
-const allFieldRate = (rows: Scored[]) => {
-  const total = rows.length * ALL_FIELDS.length;
-  const right = rows.reduce((n, r) => n + ALL_FIELDS.filter((f) => r.ok[f]).length, 0);
-  return pct(right, total);
-};
-console.log('Scorer check (should equal the capstone notebook: 85.9% and 85.4%)');
-console.log(`  all 11 fields, all 207 labels: ${allFieldRate(scored)}`);
-console.log(`  all 11 fields, 181 holdout:    ${allFieldRate(holdout)}\n`);
+const share = (rows: Scored[], key: string) => (rows.length ? rows.filter((r) => r.ok[key]).length / rows.length : NaN);
+const pct = (x: number) => (Number.isNaN(x) ? '  –  ' : `${(100 * x).toFixed(0).padStart(3)}%`);
+const change = (before: number, after: number) => (Number.isNaN(after) ? '            ' : `${pct(before)} → ${pct(after)}`);
 
-// ---- 2. Per store, the fields the app uses ----
-const stores = [...new Set(scored.map((r) => r.gt.store))].sort();
-console.log('Store       Labels   Price   Club price*   Deal**   Whole label');
+// ---- 1. Check the scorer still matches the capstone notebook ----
+const check = score(capstoneTruth, baselineParse);
+const allFields = (rows: Scored[]) =>
+  (100 * rows.reduce((n, r) => n + ALL_FIELDS.filter((f) => r.ok[f]).length, 0)) / (rows.length * ALL_FIELDS.length);
+const holdout = check.filter((r) => r.gt.dev_set.toUpperCase() !== 'TRUE');
+console.log('Scorer check, capstone baseline (should be 85.9% and 85.4%)');
+console.log(`  all 207 labels: ${allFields(check).toFixed(1)}%    181 holdout: ${allFields(holdout).toFixed(1)}%\n`);
+
+// ---- 2. Baseline → app parser, per store ----
+const before = score(truth, baselineParse);
+const after = score(truth, appParse);
+console.log(`App parser ${PARSER_VERSION} compared with the capstone baseline (all 207 labels)\n`);
+console.log('Store       Labels   Price          Club price*     Deal**          Whole label');
+const stores = [...new Set(truth.map((r) => r.store))].sort();
 for (const store of [...stores, 'ALL']) {
-  const rows = store === 'ALL' ? scored : scored.filter((r) => r.gt.store === store);
-  const withClub = rows.filter((r) => r.gt.clubcard_price !== '');
-  const withDeal = rows.filter((r) => r.gt.deal_type !== '');
-  const club = withClub.length ? `${rate(withClub, 'clubcard_price')} of ${String(withClub.length).padStart(2)}` : '     –      ';
-  const deal = withDeal.length ? `${rate(withDeal, 'deal')} of ${String(withDeal.length).padStart(2)}` : '     –      ';
-  if (store === 'ALL') console.log('-'.repeat(72));
+  const pick = (rows: Scored[]) => (store === 'ALL' ? rows : rows.filter((r) => r.gt.store === store));
+  const [b, a] = [pick(before), pick(after)];
+  const club = (rows: Scored[]) => rows.filter((r) => r.gt.clubcard_price !== '');
+  const deal = (rows: Scored[]) => rows.filter((r) => r.gt.deal_type !== '');
+  if (store === 'ALL') console.log('-'.repeat(84));
   console.log(
-    `${store.padEnd(11)} ${String(rows.length).padStart(5)}   ${rate(rows, 'standard_price')}  ${club}  ${deal}  ${rate(rows, 'whole')}`,
+    `${store.padEnd(11)} ${String(a.length).padStart(5)}   ` +
+    `${change(share(b, 'standard_price'), share(a, 'standard_price'))}   ` +
+    `${change(share(club(b), 'clubcard_price'), share(club(a), 'clubcard_price'))}    ` +
+    `${change(share(deal(b), 'deal'), share(deal(a), 'deal'))}    ` +
+    `${change(share(b, 'whole'), share(a, 'whole'))}`,
   );
 }
-console.log('\n*  only labels that have a club price    ** only labels that have a deal (type, qty and price all right)');
+console.log('\n*  only labels that have a club price   ** only labels that have a deal (type, qty and price all right)');
 
-// ---- 3. Optional: list one store's failures ----
+// How the shelf price goes wrong matters on the confirm card: a blank is
+// obvious to the shopper, a wrong number has to be spotted.
+const outcome = (rows: Scored[]) => {
+  const right = rows.filter((r) => r.ok.standard_price).length;
+  const blank = rows.filter((r) => !r.ok.standard_price && (r.res.standard_price ?? null) === null).length;
+  return `${right} right, ${blank} left blank, ${rows.length - right - blank} wrong number`;
+};
+console.log(`\nShelf price, baseline:   ${outcome(before)}`);
+console.log(`Shelf price, app parser: ${outcome(after)}`);
+
+// ---- 3. Optional: list one store's remaining failures ----
 const listStore = process.argv[2];
 if (listStore) {
-  const rows = scored.filter((r) => r.gt.store.toLowerCase() === listStore.toLowerCase() && !r.ok.whole);
-  console.log(`\n${listStore}: ${rows.length} label(s) with the price, club price or deal wrong\n`);
+  const rows = after.filter((r) => r.gt.store.toLowerCase() === listStore.toLowerCase() && !r.ok.whole);
+  console.log(`\n${listStore}: ${rows.length} label(s) with the price, club price or deal still wrong\n`);
   const show = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : String(v));
   for (const r of rows) {
     console.log(r.gt.image_filename);

@@ -1,0 +1,208 @@
+﻿image_filename,store,standard_price,clubcard_price,has_clubcard_price,deal_type,deal_qty,deal_price,unit_price,unit,brand,item_name,weight_volume,deposit_price,notes,dev_set
+Aldi_001.jpg,Aldi,1.29,,FALSE,,,,0.323,per unit,Nature's Pick,Peaches,,,"Nature's Pick, Peaches, 4 Pack",TRUE
+Aldi_002.jpg,Aldi,1.49,,FALSE,,,,4.52,per L,The Juice Company,Orange / Apple Juice,330ml,0.15,"The Juice Company, Orange / Apple Juice, Not from concentrate, 330ml",TRUE
+Aldi_003.jpg,Aldi,0.99,,FALSE,,,,3.96,per L,Barissimo,Ready To Drink Coffee Latte Light Macchiato,250ml,,"Barissimo, Ready To Drink Coffee, Latte Light Macchiato, 250ml",FALSE
+Aldi_004.jpg,Aldi,1.19,,FALSE,,,,2.98,per kg,Nature's Pick,Plums,400g,,"Nature's Pick, Plums, 400g",FALSE
+Aldi_005.jpg,Aldi,1.19,,FALSE,,,,2.98,per kg,Nature's Pick,Plums,400g,,"Nature's Pick, Plums, 400g",FALSE
+Aldi_006.jpg,Aldi,1.29,,FALSE,,,,0.323,per unit,Nature's Pick,Peaches,,,"Nature's Pick, Peaches, 4 Pack",FALSE
+Aldi_007.jpg,Aldi,2.89,,FALSE,,,,23.12,per kg,Specially Selected,Raspberries,125g,,"Specially Selected, Raspberries, 125g",FALSE
+Aldi_008.jpg,Aldi,2.99,,FALSE,,,,15.33,per kg,Free From,Gluten Free Cakes Butterfly/ Mini Muffins,195g,,"Free From, Gluten Free Cakes, Butterfly/ Mini Muffins, 195g",FALSE
+Aldi_009.jpg,Aldi,1.79,,FALSE,,,,12.61,per kg,Free From,Gluten Free Creams Cookies & Cream/ Vanilla,142g/ 160g,,"Free From, Gluten Free Creams Cookies & Cream/ Vanilla, 142g/ 160g",FALSE
+Aldi_010.jpg,Aldi,2.99,,FALSE,,,,14.95,per kg,The Foodie Market,Coconut Clusters Plain/ Dark Chocolate,200g,,"The Foodie Market, Coconut Clusters, Plain/ Dark Chocolate, 200g",FALSE
+Aldi_011.jpg,Aldi,0.95,,FALSE,,,,3.8,per kg,The Foodie Market,Seed Assortment Sunflower Seeds/ 4 Seed Mix,250g,,,FALSE
+Aldi_012.jpg,Aldi,2.29,,FALSE,,,,11.45,per kg,The Foodie Market,Mixed Nuts,200g,,,FALSE
+Aldi_013.jpg,Aldi,2.49,,FALSE,,,,19.92,per kg,The Foodie Market,Sweet Pockets Multipack Assorted,125g,,,FALSE
+Aldi_014.jpg,Aldi,0.69,,FALSE,,,,5.31,per kg,Savour Bakes,Rice Cakes Multigrain/ Sea Salt/ Unsalted,130g,,,FALSE
+Aldi_015.jpg,Aldi,6.99,,FALSE,,,,11.46,per kg,Butchers Selection,Irish Diced Steak Pieces,610g,,,FALSE
+Aldi_016.jpg,Aldi,3.65,,FALSE,,,,7.3,per kg,Cadbury,Drinking Chocolate,500g,,,FALSE
+Aldi_017.jpg,Aldi,2.29,,FALSE,,,,9.16,per kg,Diplomat,Decaf Tea Bags 80's,250g,,,FALSE
+Aldi_018.jpg,Aldi,0.58,,FALSE,,,,1.32,per kg,The Deli,Beetroot Sliced/ Baby,286g drained weight 440g,,,FALSE
+Aldi_019.jpg,Aldi,0.64,,FALSE,,,,3.05,per kg,The Deli,Sliced Jalapenos,110g drained weight 210g,,,FALSE
+Aldi_020.jpg,Aldi,0.99,,FALSE,,,,2.61,per kg,Bramwells,Piccalilli,380g,,,FALSE
+Aldi_021.jpg,Aldi,1.49,,FALSE,,,,4.38,per kg,The Deli,Pickled Pink Onions,156g drained weight 340g,,,FALSE
+Aldi_022.jpg,Aldi,0.88,,FALSE,,,,6.29,per kg,Four Seasons,Sweetcorn Mini Pack,3 x 150g/ 140g drained weight,,,FALSE
+Aldi_023.jpg,Aldi,1.39,,FALSE,,,,6.95,per kg,Dairyfine,Chocolate Peanuts,200g,,,FALSE
+Aldi_024.jpg,Aldi,2.99,,FALSE,,,,29.9,per kg,Specially Selected,Chocolate Coated Freeze Dried Fruit Strawberry/Raspberry ,100g,,,FALSE
+Aldi_025.jpg,Aldi,1.69,,FALSE,,,,4.23,per kg,Belmont,Sweet Biscuit Assortment,400g,,,FALSE
+Aldi_026.jpg,Aldi,1.49,,FALSE,,,,7.45,per kg,Belmont,Luxury Cookies Triple Chocolate/ White Chocolate,200g,,,FALSE
+Aldi_027.jpg,Aldi,0.99,,FALSE,,,,9.9,per kg,Jacobs,Mikado,100g,,,FALSE
+Aldi_028.jpg,Aldi,2.09,,FALSE,,,,6.15,per kg,Dominion,Flix 'N' Mix ,340g,,,FALSE
+Aldi_029.jpg,Aldi,1.25,,FALSE,,,,8.93,per kg,Swizzels,Drumstick Squashies Original/ Cherry & Apple,140g,,,FALSE
+Aldi_030.jpg,Aldi,1.69,,FALSE,,,,35.21,per kg,Mamia,Veggie Straws Veg/ Cheesy,4 x 12g,,,FALSE
+Aldi_031.jpg,Aldi,4.19,,FALSE,,,,0.116,per unit,Mamia,Nappy Pants Size 5,36 pack,,,FALSE
+Aldi_032.jpg,Aldi,2.99,,FALSE,,,,,,Mamia,Nappies Size 6,30 pack,,,FALSE
+Centra_001.jpg,Centra,0.8,,FALSE,,,,,,,Apple Lattice Square,80grm,,,FALSE
+Centra_002.jpg,Centra,3.05,,FALSE,,,,42.36,per L,Snickers,Ice Cream,72mls,,,TRUE
+Centra_003.jpg,Centra,2.78,,FALSE,,,,30.89,per L,Kinder Bueno,Ice Cream Cone,90mls,,,FALSE
+Centra_004.jpg,Centra,4.25,,FALSE,price,3,10,6.3,per kg,CT ,Breaded Chicken Drumsticks,675grm,,,FALSE
+Centra_005.jpg,Centra,3.25,,FALSE,price,2,6,14.32,per kg,Keelings,Strawberries,227grm,,,FALSE
+Centra_006.jpg,Centra,4.5,,FALSE,,,,12.86,per kg,Keelings Fam,PK Strawbry,350grm,,,FALSE
+Centra_007.jpg,Centra,2,,FALSE,,,,7.14,per kg,Rudds,White Pudding,280grm,,,FALSE
+Centra_008.jpg,Centra,2.65,,FALSE,,,,0.53,,Nicky ,Ultra Paper Towel Roll,1 Roll,,Unit says /MTK,FALSE
+Centra_009.jpg,Centra,5.58,,FALSE,,,,5.58,per kg,Meadowfield,Unsmkd Back Joint Rind,1 kgm,,,FALSE
+Centra_010.jpg,Centra,5.5,,FALSE,,,,6.67,per kg,CT ,Rind On Bacon Umsmk,825grm,,,FALSE
+Centra_011.jpg,Centra,3.5,,FALSE,price,2,6,11.67,per kg,Galtee ,Value Smoke Rash,10pk 300grm,,,FALSE
+Centra_012.jpg,Centra,1.39,,FALSE,,,,5.56,per kg,Centra,Black Pudding,250grm,,,FALSE
+Centra_013.jpg,Centra,2,,FALSE,price,2,3.5,5,per kg,Centra,Vegetable Soup,400grm,,,FALSE
+Centra_014.jpg,Centra,1.6,,FALSE,price,4,5,16,per kg,Heinz,Sberry Rberry Banana Pouch,100grm,,,TRUE
+Centra_015.jpg,Centra,2.15,,FALSE,,,,16.54,per kg,Ellas Kitchen,Lamb Roast Dinner 7+ M,130grm,,,FALSE
+Centra_016.jpg,Centra,3,,FALSE,,,,20,per L,Nivea,Deo Spray Pearl/Beauty,150mls,,,TRUE
+Centra_017.jpg,Centra,4.5,,FALSE,,,,10.84,per kg,KP,Dry Roasted Nuts,415grm,,,FALSE
+Centra_018.jpg,Centra,3,,FALSE,,,,139.53,per kg,Cadbury,Curly Wurly Choc Bar 4pk,21.5grm,,,FALSE
+Centra_019.jpg,Centra,2.5,,FALSE,price,2,4,23.15,per kg,Aero ,Bubbly Bar Pep/M 4pk,27grm,,,FALSE
+Centra_020.jpg,Centra,2.5,,FALSE,price,2,4,18.38,per kg,Smarties,Hexa Tube 4pk,34grm,,,TRUE
+Centra_021.jpg,Centra,1.22,,FALSE,,,,4.88,per kg,Frytex,Original,250grm,,,FALSE
+Centra_022.jpg,Centra,1.5,,FALSE,,,,,,,Sultana Fruit Scone,130grm,,,FALSE
+Centra_023.jpg,Centra,3.25,,FALSE,price,2,6,26,per kg,Inspired By,Raspberry,125grm,,,FALSE
+Centra_024.jpg,Centra,6.1,,FALSE,,,,24.4,per L,Nivea,Deodrant Pearl & Beauty Women,250m,,,FALSE
+Dunnes_001.jpg,Dunnes,0.44,,FALSE,price,6,2.2,,,Cusine De France,Petit Pain 1's,,,,TRUE
+Dunnes_002.jpg,Dunnes,2.75,,FALSE,,,,0.688,per unit,Dunnes Stores,Soft Buns 4's,,,,TRUE
+Dunnes_003.jpg,Dunnes,3.99,,FALSE,price,2,7,,,Dunnes Stores,Organic Seeded Sourdough 1's,,,,FALSE
+Dunnes_004.jpg,Dunnes,3,,FALSE,,,,,,Dunnes Stores,Farmhouse Soda 1's,,,,FALSE
+Dunnes_005.jpg,Dunnes,3.99,,FALSE,price,2,6,17.89,per kg,Mr Kipling,French Fancies 8's,,,,FALSE
+Dunnes_006.jpg,Dunnes,0.49,,FALSE,,,,,,Dunnes Stores,Royal Gala Brazil Class 1 1's,,,,FALSE
+Dunnes_007.jpg,Dunnes,2.49,,FALSE,,,,0.311,per unit,Dunnes Stores,Golden Delicious Apple Tray 8's,,,,FALSE
+Dunnes_008.jpg,Dunnes,3.25,,FALSE,price,2,5.5,10.83,per kg,Dunnes Stores,Buttered Irish Cabbage,300gm,,,FALSE
+Dunnes_009.jpg,Dunnes,1.59,,FALSE,,,,3.18,per kg,My Family Favourites,Fresh Broccoli ,500gm,,,FALSE
+Dunnes_010.jpg,Dunnes,5.3,,FALSE,,,,0.442,per unit,Dunnes Stores,Jumbo Free Range Eggs 12's,,,,FALSE
+Dunnes_011.jpg,Dunnes,6.5,,FALSE,,,,2.14,per L,Lucozade,Original,8x380m,1.2,,TRUE
+Dunnes_012.jpg,Dunnes,1.74,,FALSE,,,,10.55,per kg,Pringles,Salt & Vinegar,165gm,,,TRUE
+Dunnes_013.jpg,Dunnes,3,,FALSE,,,,0.037,per unit,Lyons,Original Blend Tea 80's,,,,FALSE
+Dunnes_014.jpg,Dunnes,2.3,,FALSE,,,,0.029,per unit,Dunnes Stores,Original Blend Tea Bags,250gms,,,FALSE
+Dunnes_015.jpg,Dunnes,5.25,,FALSE,,,,55.26,per kg,Nestle,Nescafe Alta Rica ,95g,,,FALSE
+Dunnes_016.jpg,Dunnes,14,,FALSE,,,,73.68,per kg,Nescafe,Gold Smooth,190gm,,,FALSE
+Dunnes_017.jpg,Dunnes,8.95,,FALSE,,,,59.67,per kg,L'Or ,Lor Classique 150G,150g,,,FALSE
+Dunnes_018.jpg,Dunnes,4,,FALSE,,,,8,per kg,Boyne Valley,Squeezy Honey ,600gm,,,FALSE
+Dunnes_019.jpg,Dunnes,3.3,,FALSE,,,,5.5,per kg,Mc Vitie's ,Rich Tea Twin Pack ,600gm,,,FALSE
+Dunnes_020.jpg,Dunnes,3.25,,FALSE,price,2,5.5,,,Dunnes Stores,Honey Glazed Carrots & Parnips,375gm,,,FALSE
+Dunnes_021.jpg,Dunnes,7.49,,FALSE,price,2,14,16.64,per kg,Simply Better,Irish Angus Beef Cottage Pie,450gm,,,FALSE
+Dunnes_022.jpg,Dunnes,7.49,,FALSE,price,2,14,16.64,per kg,Simply Better,Handmade Seafood Pie,450gm,,,FALSE
+Dunnes_023.jpg,Dunnes,4.79,,FALSE,,,,9.58,per kg,Dunnes Stores,Ham & Cabbage Dinner ,500gm,,,FALSE
+Dunnes_024.jpg,Dunnes,3.25,,FALSE,price,2,5.5,7.22,per kg,Dunnes Stores,Potato Gratin,450gm,,,FALSE
+Dunnes_025.jpg,Dunnes,6.69,,FALSE,,,,,,Carroll's ,Fresh Lasagne,1kg,,,FALSE
+Dunnes_026.jpg,Dunnes,3.99,,FALSE,,,,4.43,per L,Innocent ,Orange Juice with Bits,900ml,0.25,,FALSE
+Dunnes_027.jpg,Dunnes,4.29,,FALSE,,,,3.18,per L,Copella,Apple Juice,1.35l,0.25,,TRUE
+Dunnes_028.jpg,Dunnes,5.99,,FALSE,,,,17.11,per kg,Simply Better,Italian Made Pistachio Gelato,350gm,,,FALSE
+Dunnes_029.jpg,Dunnes,4.49,,FALSE,,,,4.73,per L,Dunnes Stores,White Chocolate & Raspberry ,950ml,,,FALSE
+Dunnes_030.jpg,Dunnes,5.99,,FALSE,,,,10.89,per L,Simply Better,Butterscotch With Salted Toffee,550ml,,,FALSE
+Dunnes_031.jpg,Dunnes,1.1,,FALSE,,,,0.073,per unit,Dunnes Stores,D/S Tie Handle F&F Bags 15pk,,,,FALSE
+Dunnes_032.jpg,Dunnes,1.1,,FALSE,,,,0.028,per unit,Dunnes Stores,D/S Tie Handle Freezer Bags ,40,,,FALSE
+Dunnes_033.jpg,Dunnes,4.2,,FALSE,,,,0.35,per unit,Bacofoil,Zipper Bag Medium 12's,,,,FALSE
+Dunnes_034.jpg,Dunnes,2.45,,FALSE,,,,0.817,,Raytex,Raytex Greaseproof 5M,,,per metre,FALSE
+Dunnes_035.jpg,Dunnes,1.89,,FALSE,,,,0.076,,Raytex,Raytex Clingfilm 325mmX25mtrs,25M,,per metre,FALSE
+Dunnes_036.jpg,Dunnes,4,,FALSE,,,,14.29,per L,Cif,Infinite Lavender & Eucalyptus ,280ml,,,FALSE
+Dunnes_037.jpg,Dunnes,1.29,,FALSE,,,,0.645,per unit,My Family Favourites,Kitchen Towel 2pk,,,,FALSE
+Dunnes_038.jpg,Dunnes,3,,FALSE,,,,1.5,per unit,Nicky ,Lemon Kitchen Towels 2's,,,,FALSE
+Dunnes_039.jpg,Dunnes,3.25,,FALSE,price,3,5,1.86,per L,Club Zero ,Orange,1.75l,0.25,,FALSE
+Dunnes_040.jpg,Dunnes,2,,FALSE,,,,,,Fanta,Orange,1l,0.25,,FALSE
+Dunnes_041.jpg,Dunnes,5.99,,FALSE,price,2,10,10.89,per L,Simply Better,Strawberries & Cream Icecream,550ml,,very blurry picture,FALSE
+Lidl_001.jpg,Lidl,0.49,,TRUE,price,3,1.35,10.42,per kg,,Sugar Donut,47g,,price deal with Lidl Plus,TRUE
+Lidl_002.jpg,Lidl,0.79,,FALSE,,,,8.32,per kg,,Bavarian Pretzel,95g,,,FALSE
+Lidl_003.jpg,Lidl,0.79,,FALSE,,,,8.32,per kg,,Bavarian Pretzel,95g,,,FALSE
+Lidl_004.jpg,Lidl,2.39,,FALSE,,,,,,,Mango Ready To Eat,2 pack,,,FALSE
+Lidl_005.jpg,Lidl,2.49,,FALSE,,,,13.83,per L,Clarks,Maple Syrup,180ml,,,FALSE
+Lidl_006.jpg,Lidl,2.29,1.71,TRUE,,,,6.74,per kg,Maribel,Organic Honey,340g,,,FALSE
+Lidl_007.jpg,Lidl,4.99,,FALSE,,,,,,Maribel,100% Peanut Butter Smooth,1kg,,,FALSE
+Lidl_008.jpg,Lidl,4.99,2.99,TRUE,,,,22.68,per kg,Keelings,Berry Selection,220g,,,FALSE
+Lidl_009.jpg,Lidl,1.99,0.99,TRUE,,,,,,,Chinese Leaf,,,,TRUE
+Lidl_010.jpg,Lidl,2.99,1.79,TRUE,,,,0.49,per unit,,Pink Lady Apples ,6 pack,,,TRUE
+Lidl_011.jpg,Lidl,2.99,,FALSE,,,,0.5,per unit,,Organic Apples ,6 pack,,,FALSE
+Lidl_012.jpg,Lidl,4.29,3.25,TRUE,,,,11,per kg,Nestle,Cheerios,390g,,,FALSE
+Lidl_013.jpg,Lidl,0.99,,FALSE,,,,,,Rowan Hill Bakery,Hot Dog/Burger Buns,,,dual unit price 3.96 / 3.30 per kg 250g/300g variants  — no single ground truth,TRUE
+Lidl_014.jpg,Lidl,1.99,,FALSE,,,,7.37,per kg,Deluxe,Brioche Hot Dog,270g,,,FALSE
+Lidl_015.jpg,Lidl,3.69,,TRUE,price,2,7,7.53,per kg,Deluxe,Wood Fired Pizza Mozarella&Basil Pesto,490g,,,FALSE
+Lidl_016.jpg,Lidl,1.99,,TRUE,price,2,3,33.17,per kg,HealthyFit,Protein Bar Peanut Butter,60g,,,FALSE
+Lidl_017.jpg,Lidl,0.99,,FALSE,,,,,,Livarno,Cleaning Brush Assortment,,,,FALSE
+Lidl_018.jpg,Lidl,2.69,,FALSE,,,,1.35,,Floralys,Ultra Kitchen Towels 2 Ply ,2 Rollsx100 Sheets,,unit is per 100 sheets,FALSE
+Lidl_019.jpg,Lidl,1.85,,FALSE,,,,0.77,,Floralys,Strong Kitchen Towels 2 Ply,4 Rollsx60 Sheets,,unit is per 100 sheets,FALSE
+Lidl_020.jpg,Lidl,2.89,,FALSE,,,,0.12,,Simply ,Double Length Toilet Tissue 2 Ply,6 Rollsx400 Sheets,,unit is per 100 sheets,FALSE
+Lidl_021.jpg,Lidl,5.99,,FALSE,,,,11.98,per kg,Chicken with Attitude,Crispy Golden Tenders,500g,,,FALSE
+Lidl_022.jpg,Lidl,1.99,,FALSE,,,,1.33,per kg,Harvest Basket,Steak Cut Chips,1.5kg,,,FALSE
+Lidl_023.jpg,Lidl,5.99,4.45,TRUE,,,,0.33,,Floralys,Super Soft Toilet Tissue 4 Ply,10 Rollsx180 Sheets,,unit is per 100 sheets,FALSE
+Lidl_024.jpg,Lidl,3.25,,TRUE,price,2,5,1.63,per L,Coca-Cola,Diet,,0.25,"price deal with Lidl Plus, glare in picture",TRUE
+Lidl_025.jpg,Lidl,16.99,,FALSE,,,,,,Grillmeister,Barbecue Utensils Various items available,,,,FALSE
+SuperValu_001.jpg,SuperValu,2.65,,FALSE,,,,16.06,per kg,Philadelphia,Light 10CA,165grm,,,TRUE
+SuperValu_002.jpg,SuperValu,3.25,,FALSE,,,,13,per L,Hellmnns,Salad Dressing 1000 Island,250mls,,,FALSE
+SuperValu_003.jpg,SuperValu,3.25,,FALSE,,,,13,per L,Hellmnns,Salad Dressing 1000 Island,250mls,,,FALSE
+SuperValu_004.jpg,SuperValu,3.59,,FALSE,,,,7.98,per kg,Ballymaloe,Diced Beetroot,450grm,,,FALSE
+SuperValu_005.jpg,SuperValu,2.89,,FALSE,,,,23.12,per kg,Sig Tastes,Raspberry,125grm,,,FALSE
+SuperValu_006.jpg,SuperValu,7.5,,FALSE,,,,11.54,per kg,Clonakilty,GF Kitchen Apple Tart,650grm,,,FALSE
+SuperValu_007.jpg,SuperValu,7.5,,FALSE,,,,11.54,per kg,Clonakilty,GF Kitchen Apple Tart,650grm,,,FALSE
+SuperValu_008.jpg,SuperValu,2.5,,FALSE,price,3,5,23.15,per kg,Aero,Bubbly Bar Milk 4Pk ,27grm,,,FALSE
+SuperValu_009.jpg,SuperValu,2.5,,FALSE,price,3,5,23.15,per kg,Aero,Bubbly Bar Pep/M 4pk,27grm,,,FALSE
+SuperValu_010.jpg,SuperValu,2.25,,FALSE,price,3,5,22.5,per kg,Cadbury,Snack Shortcake 5pk,20grm,,,TRUE
+SuperValu_011.jpg,SuperValu,2.35,,FALSE,,,,8.39,per kg,Baker Street,Brioche Rolls 8pk,280grm,,,FALSE
+SuperValu_012.jpg,SuperValu,3.75,,FALSE,,,,7.5,per kg,Signature Taste,Oxford Lunch,500grm,,,FALSE
+SuperValu_013.jpg,SuperValu,4.5,,FALSE,,,,8.65,per kg,Oharas Twn Pk,Madeira/Cho Oc Chip Cke,520grm,,,FALSE
+SuperValu_014.jpg,SuperValu,3.75,,FALSE,,,,7.5,per kg,Signature Taste,Porter Cake,500grm,,,FALSE
+SuperValu_015.jpg,SuperValu,2.5,,FALSE,price,3,5,15.63,per kg,Jacobs,Coconut Creams,160grm,,,FALSE
+SuperValu_016.jpg,SuperValu,10.49,,FALSE,,,,23.11,per kg,Signature Tastes,Hereford Sirloin,454grm,,,FALSE
+SuperValu_017.jpg,SuperValu,6,,FALSE,,,,16.67,per kg,SVST,Beef Topside Quick Fry Steaks,360grm,,,FALSE
+SuperValu_018.jpg,SuperValu,3.19,,FALSE,,,,9.11,per kg,Carroll ,Cuisine Fresh Lasagne,350grm,,"Normal price is 4.29, discounted",FALSE
+SuperValu_019.jpg,SuperValu,1.85,,FALSE,,,,18.5,per kg,Mr Crumb,Sage & Onion Stuffing,100grm,,,FALSE
+SuperValu_020.jpg,SuperValu,0.59,,FALSE,,,,1.97,per kg,SuperValu,Rich Tea Biscuits,300grm,,,FALSE
+SuperValu_021.jpg,SuperValu,1.29,,FALSE,,,,4.3,per kg,SuperValu,Shorties,300grm,,,FALSE
+SuperValu_022.jpg,SuperValu,3.5,,FALSE,price,2,5,7.78,per kg,Dolmio,Smooth Tomat Bolognese Sauce,,,,FALSE
+SuperValu_023.jpg,SuperValu,3.5,,FALSE,price,2,5,7.78,per kg,Dolmio,Smooth Tomat Bolognese Sauce,,,,FALSE
+SuperValu_024.jpg,SuperValu,1.35,,FALSE,,,,1.35,per kg,SuperValu,Fusilli,1kgm,,,FALSE
+SuperValu_025.jpg,SuperValu,11.89,,FALSE,,,,15.85,per L,Don Carlos,Extra Virgin Olive Oil,750mls,,,FALSE
+SuperValu_026.jpg,SuperValu,22.15,,FALSE,,,,,,Vitabiotics,Pregnacare Plus ,30PCE,,"Normal price is 27.69, discounted",FALSE
+SuperValu_027.jpg,SuperValu,3.5,,FALSE,,,,11.67,per kg,Schar ,GF Wholesome White Loaf,300grm,,"Normal price is 4.59, discounted",FALSE
+SuperValu_028.jpg,SuperValu,2.49,,FALSE,,,,12.45,per kg,SuperValu,Brazil Nuts,200grm,,,FALSE
+SuperValu_029.jpg,SuperValu,1.89,,FALSE,,,,9.45,per kg,SuperValu,Whole Almonds,200grm,,,FALSE
+SuperValu_030.jpg,SuperValu,5.99,4,TRUE,,,,16.64,per L,Cornetto,Max Pistachio Cone 4pk,90mls,,picture very dark,FALSE
+SuperValu_031.jpg,SuperValu,5.99,4,TRUE,,,,16.64,per L,Cornetto,Max Pistachio Cone 4pk,90mls,,,FALSE
+SuperValu_032.jpg,SuperValu,5.99,4,TRUE,,,,16.64,per L,Cornetto,Max Hazelnut Choc Cone 4pk,90mls,,,FALSE
+SuperValu_033.jpg,SuperValu,1.09,,FALSE,,,,1.92,per L,SV,Raspberry Ripple Ice Cream,568mls,,,FALSE
+SuperValu_034.jpg,SuperValu,1.95,,FALSE,,,,3.9,per kg,SV,Smoothie Mango Kiwi Pineap,500grm,,,FALSE
+SuperValu_035.jpg,SuperValu,5.5,,FALSE,,,,5.5,per L,Red Bull,Tropical Can 4pk,250mls,0.6,,FALSE
+SuperValu_036.jpg,SuperValu,5.5,,FALSE,,,,11,per L,Lucozade,Sport Rasp Drink 4pk,500mls,0.6,,TRUE
+SuperValu_037.jpg,SuperValu,1.35,,FALSE,,,,0.9,per L,Deep River Rock,Sparkling Water,1.5ltr,0.25,,FALSE
+SuperValu_038.jpg,SuperValu,1.09,,FALSE,,,,2.18,per kg,SV ,Oh So Buttery Spread,500grm,,,FALSE
+SuperValu_039.jpg,SuperValu,1.09,,FALSE,,,,2.18,per kg,SV ,Oh So Buttery Spread,500grm,,,FALSE
+SuperValu_040.jpg,SuperValu,6.99,,FALSE,,,,13.98,per L,Gilbert Murphy-IR,App Cid Vinegar Wt Honey,,,,FALSE
+SuperValu_041.jpg,SuperValu,8.95,7,TRUE,,,,59.67,per kg,L'Or ,Decaf Instant Coffee Jar,150grm,,,TRUE
+SuperValu_042.jpg,SuperValu,2.5,,TRUE,price,3,5,11.36,per kg,Bens Original,Rth Golden Veg Rice,220grm,,price deal with Rewards card,TRUE
+SuperValu_043.jpg,SuperValu,4.1,,FALSE,price,3,10,3.11,per L,Club Lemon,Can 4 Pack,330mls,1.8,,FALSE
+Tesco_001.jpg,Tesco,0.99,0.69,TRUE,,,,,,Tesco,Red Onion,750g,,,TRUE
+Tesco_002.jpg,Tesco,1.67,,FALSE,,,,0.278,per unit,Tesco,Small Bananas,6 pack,,,FALSE
+Tesco_003.jpg,Tesco,2.99,2,TRUE,,,,2.99,per L,Alpro,Almond No Sugars Long Life Drink,1 litre,,,FALSE
+Tesco_004.jpg,Tesco,5.49,4.25,TRUE,,,,4.58,per kg,Actimel,S/Berry Yoghurt Drink,12 X100g,,,FALSE
+Tesco_005.jpg,Tesco,3.5,,TRUE,price,2,5,43.75,per kg,Brady Family,Without Nitrites Hon Rst Ham,80g,,price deal with clubcard,FALSE
+Tesco_006.jpg,Tesco,3.89,3,TRUE,,,,5.89,per kg,Avonmore,Soup Wholesome Chk & Vege,660g,,glare bottom right corner ,FALSE
+Tesco_007.jpg,Tesco,14.2,8,TRUE,,,,94.67,per kg,L'Or ,Intense Instant Coffee ,150g,,,FALSE
+Tesco_008.jpg,Tesco,1.5,,TRUE,price,2,2.75,0.75,per unit,Tesco,Salt & Chilli Soft Roll ,2 pack,,,FALSE
+Tesco_009.jpg,Tesco,1.29,0.89,TRUE,,,,,,Tesco,Salad Tomatoes,6 pack,,,FALSE
+Tesco_010.jpg,Tesco,1.49,,TRUE,price,3,3,0.248,per unit,T.,Ripen At Home Kiwi,,,"very blurry, price deal with clubcard",FALSE
+Tesco_011.jpg,Tesco,8.35,7,TRUE,,,,19.65,per kg,Linwoods,Milled Organic Flaxseed,425g,,,FALSE
+Tesco_012.jpg,Tesco,3.5,,TRUE,price,2,6,0.583,per unit,Tesco,Free From Jam Tarts,6 Pk,,,FALSE
+Tesco_013.jpg,Tesco,2.99,2,TRUE,,,,2.99,per L,Flahavan's,Barista Oat Drink ,1l,,,FALSE
+Tesco_014.jpg,Tesco,1.69,,FALSE,,,,7.04,per kg,Biona,Organic Black Beans,400g,,,FALSE
+Tesco_015.jpg,Tesco,1.69,,FALSE,,,,7.04,per kg,Biona,Organic Black Beans,400g,,,FALSE
+Tesco_016.jpg,Tesco,2.5,,FALSE,,,,33.33,per L,Colgate,Cavity Protection T/Paste,75ml,,,FALSE
+Tesco_017.jpg,Tesco,6,,FALSE,,,,80,per L,Colgate,T/Paste Max Fresh Blue,75ml,,,FALSE
+Tesco_018.jpg,Tesco,9,4.5,TRUE,,,,120,per L,Colgate,Max Wht Optic Whtng T/Paste,75ml,,,FALSE
+Tesco_019.jpg,Tesco,9,4.5,TRUE,,,,120,per L,Colgate,Max Wht Optic Whtng T/Paste,75ml,,,FALSE
+Tesco_020.jpg,Tesco,118,53,TRUE,,,,,,Oral-B,Io Series 2 Cln & Care Wht Elec T/Brush,,,,TRUE
+Tesco_021.jpg,Tesco,11,5.5,TRUE,,,,,,Oral-B,Pulsar Pro Clean Med Btry T/Brush,,,,FALSE
+Tesco_022.jpg,Tesco,7.5,3.75,TRUE,,,,,,Colgate,Total Atv Foaming Cln Med T/Brush,,,clubcard price is hard to read due to sticker residue,FALSE
+Tesco_023.jpg,Tesco,4.99,,TRUE,price,2,8,35.64,per kg,Bluebell,Fall Plain Goats,140g,,price deal with clubcard,FALSE
+Tesco_024.jpg,Tesco,4.2,,TRUE,qty,3,2,21,per kg,Cooleeney,Camembert,200g ,,"any 3 for 2, with cheapest product free",TRUE
+Dunnes_042.jpg,Dunnes,5.29,,FALSE,qty,3,2,26.45,per kg,Simply Better,52%italian Hazelnut Cocoa Spread,200gm,,Cheapest item free,FALSE
+Dunnes_043.jpg,Dunnes,5.29,,FALSE,qty,3,2,26.05,per kg,Simply Better,Pistachio Spread,220gm,,Cheapest item free,FALSE
+Dunnes_044.jpg,Dunnes,2.99,,FALSE,qty,3,2,10.68,per kg,Simply Better,Sb italian Olive Collection ,280gm,,Cheapest item free,FALSE
+Dunnes_045.jpg,Dunnes,4.29,,FALSE,qty,3,2,33,per kg,Simply Better,Black Olive& Basil Pesto,130gm,,Cheapest item free,TRUE
+Dunnes_046.jpg,Dunnes,3,,FALSE,qty,3,2,15,per kg,Dunnes Stores,Chicken Style Fillets,200gm,,Cheapest item free,FALSE
+Dunnes_047.jpg,Dunnes,3,,FALSE,qty,3,2,16.67,per kg,Dunnes Stores,Chicken Style Wings,180gm,,Cheapest item free,FALSE
+Dunnes_048.jpg,Dunnes,10,,FALSE,,,,2.53,per L,Diet Coke,Diet,12x330,1.8,"very difficult to read per unit price, total price incl deposit is 11.80",FALSE
+Dunnes_049.jpg,Dunnes,3.79,,FALSE,qty,3,2,47.38,per kg,Dunnes Stores,Smoked Speck & Smoked Cheese,80gm,,Cheapest item free,FALSE
+Dunnes_050.jpg,Dunnes,3.79,,FALSE,qty,3,2,47.38,per kg,Dunnes Stores,Prosciutto Ham & Milano Salami,80gm,,Cheapest item free,FALSE
+Lidl_026.jpg,Lidl,4.49,2.69,TRUE,,,,,,,Plums,,,,FALSE
+Lidl_027.jpg,Lidl,1.99,,TRUE,qty,3,2,16.58,per kg,Crownfield,Superfood Oat Bites Cocoa&Orange/Lemon&Blueberry,4x30g,,"Quantity deal with Lidl Plus, max 6 units",TRUE
+Lidl_028.jpg,Lidl,1.69,,TRUE,qty,3,2,14.08,per kg,Crownfield,Fibre Up Squares Chocolate Fudge/Salted Caramel,5x24g,,"Quantity deal with Lidl Plus, max 6 units",FALSE
+Lidl_029.jpg,Lidl,1.25,,TRUE,qty,3,2,13.16,per kg,Crownfield,Crunch Bars Raspberry&White Choc/Caramel,5x19g,,"Quantity deal with Lidl Plus, max 6 units",FALSE
+Lidl_030.jpg,Lidl,1.19,,TRUE,qty,3,2,11.9,per kg,Crownfield,Whipped Bars Toffee/Mint,5x20g,,"Quantity deal with Lidl Plus, max 6 units",FALSE
+Lidl_031.jpg,Lidl,1.69,,TRUE,qty,3,2,14.23,per kg,Tower Gate,Choc Chip Mini Cookies,5x19.8g,,"Quantity deal with Lidl Plus, max 6 units",FALSE
+Lidl_032.jpg,Lidl,1.79,,TRUE,qty,3,2,12.79,per kg,Tower Gate,Take Up! Biscuit Bar Choco/Choco&Milk,140g,,"Quantity deal with Lidl Plus, max 6 units",FALSE
+Lidl_033.jpg,Lidl,1.79,,TRUE,qty,3,2,12.79,per kg,Tower Gate,Take Up! Biscuit Bar Choco/Choco&Milk,140g,,"Quantity deal with Lidl Plus, max 6 units",FALSE
+Lidl_034.jpg,Lidl,1.25,,TRUE,qty,3,2,13.16,per kg,Crownfield,Crunch Bars Choc Orange/Choc Fudge,5x19g,,"Quantity deal with Lidl Plus, max 6 units",FALSE
