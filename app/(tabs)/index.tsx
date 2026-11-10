@@ -89,6 +89,9 @@ export default function ScanScreen() {
               onChooseDeal={scan.chooseDeal}
               onCancel={scan.cancelEntry}
               onAdd={scan.addToBasket}
+              lookupStatus={scan.lookupStatus}
+              lookupMessage={scan.lookupMessage}
+              onLookUp={scan.lookUpBarcode}
             />
           )}
         </ScrollView>

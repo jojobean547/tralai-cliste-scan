@@ -1,6 +1,8 @@
 // The confirm card (step 4 of the mockup). UI only: the form, its errors and the
 // notes come from hooks/useScanScreen.ts; changes go back through onChange.
 // Used for typed-in prices now, and filled in by the scanner later.
+// The barcode look-up (Open Food Facts) is optional: the button only shows when
+// the screen passes onLookUp.
 
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { Button } from '@/components/ui/Button';
@@ -9,7 +11,8 @@ import { StoreBadge } from '@/components/ui/StoreBadge';
 import { TouchTargets } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import type { ConfirmForm, DealChoice, FormErrors } from '@/lib/confirmForm';
-import { Pressable, Switch, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
+import type { LookupStatus } from '@/lib/productLookup';
+import { Image, Pressable, Switch, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
 type Props = {
   title: string;
@@ -23,6 +26,9 @@ type Props = {
   onChooseDeal: (choice: DealChoice) => void;
   onCancel: () => void;
   onAdd: () => void;
+  lookupStatus?: LookupStatus;
+  lookupMessage?: string | null;
+  onLookUp?: () => void;
 };
 
 // A labelled text box. It must live outside ConfirmCard: a component defined
@@ -75,6 +81,9 @@ function LabeledInput(p: LabeledInputProps) {
 
 export function ConfirmCard(props: Props) {
   const { title, form, errors, notes, store, clubCardName, showClubPrice, onChange, onChooseDeal, onCancel, onAdd } = props;
+  const { lookupStatus = 'idle', lookupMessage, onLookUp } = props;
+  const lookingUp = lookupStatus === 'loading';
+  const found = lookupStatus === 'found';
   const { colors, typography, spacing, radii } = useTheme();
 
   const label = { fontSize: typography.bodySmall, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: spacing.xs };
@@ -250,6 +259,50 @@ export function ConfirmCard(props: Props) {
       </Text>
 
       <LabeledInput
+        label="Barcode"
+        value={form.barcodeText}
+        onChangeText={(t) => onChange('barcodeText', t)}
+        placeholder="13 digits under the barcode"
+        keyboardType="number-pad"
+        error={errors.barcode}
+        hint={onLookUp ? 'Type the numbers under the barcode, then tap Look up product' : 'Scanning the barcode with the camera is coming in a later update'}
+      />
+
+      {!!onLookUp && (
+        <View style={{ gap: spacing.sm }}>
+          <Button variant="secondary" onPress={() => { if (!lookingUp) onLookUp(); }}>
+            {lookingUp ? 'Looking up…' : 'Look up product'}
+          </Button>
+
+          {!!lookupMessage && (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={{ fontSize: typography.bodySmall, color: found ? colors.primaryGreen : lookupStatus === 'unavailable' ? colors.error : colors.textSecondary }}
+            >
+              {lookupMessage}
+            </Text>
+          )}
+
+          {found && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              {!!form.imageUrl && (
+                <Image
+                  source={{ uri: form.imageUrl }}
+                  accessibilityIgnoresInvertColors
+                  accessible={false}
+                  resizeMode="contain"
+                  style={{ width: 72, height: 72, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}
+                />
+              )}
+              <Text style={{ flex: 1, fontSize: typography.caption, color: colors.textSecondary }}>
+                Product information from Open Food Facts
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      <LabeledInput
         label="Product name"
         value={form.name}
         onChangeText={(t) => onChange('name', t)}
@@ -260,16 +313,6 @@ export function ConfirmCard(props: Props) {
         <Text style={label}>Category</Text>
         <CategoryPicker value={form.category} onChange={(c) => onChange('category', c)} />
       </View>
-
-      <LabeledInput
-        label="Barcode"
-        value={form.barcodeText}
-        onChangeText={(t) => onChange('barcodeText', t)}
-        placeholder="13 digits under the barcode"
-        keyboardType="number-pad"
-        error={errors.barcode}
-        hint="Scanning the barcode with the camera is coming in a later update"
-      />
 
       <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
         <Button variant="secondary" onPress={onCancel} fullWidth={false} style={{ paddingHorizontal: spacing.xl }}>Cancel</Button>
