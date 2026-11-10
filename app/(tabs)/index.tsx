@@ -1,6 +1,8 @@
 // The Scan screen: pick your store, then add items.
-// For now items are typed in; the camera arrives with the development build.
+// Prices are typed in for now; label scanning arrives with the development build.
+// The product barcode can already be scanned with the camera.
 
+import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { ConfirmCard } from '@/components/ConfirmCard';
 import { StorePicker } from '@/components/StorePicker';
 import { Button } from '@/components/ui/Button';
@@ -92,6 +94,13 @@ export default function ScanScreen() {
               lookupStatus={scan.lookupStatus}
               lookupMessage={scan.lookupMessage}
               onLookUp={scan.lookUpBarcode}
+              onScanBarcode={scan.scanBarcode}
+              cameraMessage={scan.cameraMessage}
+              onOpenSettings={scan.cameraBlocked ? scan.openCameraSettings : undefined}
+              lookupTone={scan.lookupTone}
+              suggestion={scan.suggestion}
+              onUseSuggestion={scan.acceptSuggestion}
+              onRejectSuggestion={scan.rejectSuggestion}
             />
           )}
         </ScrollView>
@@ -114,6 +123,9 @@ export default function ScanScreen() {
           <Text style={{ fontSize: typography.heading2, fontWeight: typography.bold, color: colors.textPrimary }}>{euro(scan.total)}</Text>
         </Pressable>
       )}
+
+      {/* Full-screen camera for the product barcode; opened from the confirm card */}
+      <BarcodeScanner visible={scan.scannerOpen} onScanned={scan.onBarcodeScanned} onCancel={scan.closeScanner} />
     </SafeAreaView>
   );
 }

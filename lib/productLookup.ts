@@ -9,10 +9,31 @@
 import type { ConfirmForm } from './confirmForm';
 import type { LookupProduct } from './openFoodFacts';
 
-// idle → loading → found / notFound / unavailable
+// idle → loading → found / suggested / notFound / unavailable
+// suggested = found, but the barcode is a shop's own code (lib/barcode.ts), so the
+//             same number may be a different product elsewhere. Nothing is filled
+//             in until the shopper taps "Use this".
 // invalid   = the barcode numbers don't add up, so nothing was looked up
-// storeCode = a shop's own code (lib/barcode.ts), so nothing was looked up
-export type LookupStatus = 'idle' | 'loading' | 'found' | 'notFound' | 'unavailable' | 'invalid' | 'storeCode';
+export type LookupStatus = 'idle' | 'loading' | 'found' | 'suggested' | 'notFound' | 'unavailable' | 'invalid';
+
+// The colour of the result box on the confirm card
+//   good = green, note = gold, problem = red
+export type LookupTone = 'good' | 'note' | 'problem';
+
+export function lookupTone(status: LookupStatus): LookupTone | null {
+  switch (status) {
+    case 'found':
+      return 'good';
+    case 'suggested':
+    case 'notFound':
+    case 'invalid':
+      return 'note';
+    case 'unavailable':
+      return 'problem';
+    default:
+      return null;
+  }
+}
 
 // Lower case, letters and numbers only, so "Hellmann's" and "Hellmanns" compare equal
 const squash = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '');
@@ -26,9 +47,10 @@ const words = (s: string) => s.split(/\s+/).filter(Boolean);
 function brandPrefix(brand: string, name: string): string {
   const b = words(brand);
   const n = squash(name);
-  if (b.length === 0 || n.includes(squash(brand)) || n.includes(squash(b[0]))) return '';
-  // Drop brand words the name already starts with ("Organic" in "Biona Organic" + "Organic …")
   const nameWords = words(name).map(squash);
+  // Whole words only: "Choco" is not already in "Chocolate"
+  if (b.length === 0 || n.includes(squash(brand)) || nameWords.includes(squash(b[0]))) return '';
+  // Drop brand words the name already starts with ("Organic" in "Biona Organic" + "Organic …")
   for (let k = Math.min(b.length - 1, nameWords.length); k > 0; k--) {
     if (b.slice(b.length - k).map(squash).join(' ') === nameWords.slice(0, k).join(' ')) return b.slice(0, b.length - k).join(' ');
   }
@@ -75,8 +97,8 @@ export function lookupMessage(status: LookupStatus): string | null {
       return "Couldn't reach the product database. Check your signal and try again, or type the name yourself.";
     case 'invalid':
       return 'Check the barcode numbers first.';
-    case 'storeCode':
-      return "This is the shop's own code, not a product barcode, so it can't be looked up. You can type the name yourself.";
+    case 'suggested':
+      return "Is this the right product? This is the shop's own code, and the same number can be a different product in another shop.";
     default:
       return null;
   }

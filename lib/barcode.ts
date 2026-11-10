@@ -35,3 +35,12 @@ export function barcodeKind(code: string): BarcodeKind {
   if (code.length === 13 && (code.startsWith('2') || code.startsWith('02') || code.startsWith('04'))) return 'storeCode';
   return 'product';
 }
+
+// What the camera read, as a barcode the app can use, or null to keep scanning.
+// The camera may report a 13-digit barcode that starts with 0 as a 12-digit
+// UPC-A; adding the 0 back gives the form Open Food Facts uses.
+export function barcodeFromScan(data: string): string | null {
+  const digits = data.trim();
+  if (!/^\d+$/.test(digits) || !isValidBarcode(digits)) return null;
+  return normaliseBarcode(digits.length === 12 ? '0' + digits : digits);
+}

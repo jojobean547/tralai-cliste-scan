@@ -4,8 +4,9 @@
 // Looking up a barcode: checks the phone's own cache first, then asks
 // Open Food Facts, and remembers what it found (saved under tralai.products.v1).
 // With no signal, a product looked up before still works, even if it's old.
-// A shop's own in-store code isn't looked up at all (see lib/barcode.ts): the
-// same number can be a different product elsewhere, so the answer can't be trusted.
+// A shop's own in-store code (see lib/barcode.ts) is looked up too, but the answer
+// comes back as 'suggested' rather than 'found': the same number can be a
+// different product elsewhere, so the shopper confirms it first.
 // hooks/useScanScreen.ts uses this; the confirm card never calls it directly.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -50,11 +51,7 @@ export function useProductLookup() {
       return null;
     }
     const barcode = normaliseBarcode(digits);
-    if (barcodeKind(barcode) === 'storeCode') {
-      setProduct(null);
-      setStatus('storeCode');
-      return null;
-    }
+    const foundAs: LookupStatus = barcodeKind(barcode) === 'storeCode' ? 'suggested' : 'found';
 
     busy.current = true;
     const mine = ++ticket.current;
@@ -70,18 +67,23 @@ export function useProductLookup() {
 
     try {
       const cached = (await loadCache())[barcode] ?? null;
-      if (cached && isFresh(cached, new Date())) return finish('found', cached);
+      if (cached && isFresh(cached, new Date())) return finish(foundAs, cached);
 
       const result = await fetchProduct(barcode);
       if (result.kind === 'found') {
         remember(result.product);
-        return finish('found', result.product);
+        return finish(foundAs, result.product);
       }
-      if (result.kind === 'unavailable' && cached) return finish('found', cached); // old, but better than nothing
+      if (result.kind === 'unavailable' && cached) return finish(foundAs, cached); // old, but better than nothing
       return finish(result.kind, null);
     } finally {
       if (mine === ticket.current) busy.current = false;
     }
+  }, []);
+
+  // The shopper confirmed a suggested product: from now on it counts as found
+  const accept = useCallback(() => {
+    setStatus((s) => (s === 'suggested' ? 'found' : s));
   }, []);
 
   const reset = useCallback(() => {
@@ -91,5 +93,5 @@ export function useProductLookup() {
     setStatus('idle');
   }, []);
 
-  return { status, product, lookUp, reset };
+  return { status, product, lookUp, accept, reset };
 }

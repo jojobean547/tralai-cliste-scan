@@ -1,8 +1,8 @@
 // The confirm card (step 4 of the mockup). UI only: the form, its errors and the
 // notes come from hooks/useScanScreen.ts; changes go back through onChange.
 // Used for typed-in prices now, and filled in by the scanner later.
-// The barcode look-up (Open Food Facts) is optional: the button only shows when
-// the screen passes onLookUp.
+// The barcode look-up (Open Food Facts) and the camera scan are optional: their
+// buttons only show when the screen passes onLookUp and onScanBarcode.
 
 import { CategoryPicker } from '@/components/CategoryPicker';
 import { Button } from '@/components/ui/Button';
@@ -11,8 +11,8 @@ import { StoreBadge } from '@/components/ui/StoreBadge';
 import { TouchTargets } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import type { ConfirmForm, DealChoice, FormErrors } from '@/lib/confirmForm';
-import type { LookupStatus } from '@/lib/productLookup';
-import { Image, Pressable, Switch, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
+import type { LookupStatus, LookupTone } from '@/lib/productLookup';
+import { Image, Keyboard, Pressable, Switch, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
 // The − and + buttons look compact (40 high), matching the basket, but an
 // invisible margin (hitSlop) keeps the area you can tap at the full 56 high
@@ -35,6 +35,14 @@ type Props = {
   lookupStatus?: LookupStatus;
   lookupMessage?: string | null;
   onLookUp?: () => void;
+  onScanBarcode?: () => void;
+  cameraMessage?: string | null;
+  onOpenSettings?: () => void;   // only passed when camera access is turned off
+  lookupTone?: LookupTone | null;
+  // A product found for a shop's own code, waiting for the shopper to confirm it
+  suggestion?: { name: string; imageUrl: string | null } | null;
+  onUseSuggestion?: () => void;
+  onRejectSuggestion?: () => void;
 };
 
 // A labelled text box. It must live outside ConfirmCard: a component defined
@@ -86,11 +94,46 @@ function LabeledInput(p: LabeledInputProps) {
 }
 
 export function ConfirmCard(props: Props) {
+  const { colors, typography, spacing, radii } = useTheme();
   const { title, form, errors, notes, store, clubCardName, showClubPrice, onChange, onChooseDeal, onCancel, onAdd } = props;
-  const { lookupStatus = 'idle', lookupMessage, onLookUp } = props;
+  const { lookupStatus = 'idle', lookupMessage, onLookUp, onScanBarcode, cameraMessage, onOpenSettings } = props;
   const lookingUp = lookupStatus === 'loading';
   const found = lookupStatus === 'found';
-  const { colors, typography, spacing, radii } = useTheme();
+
+  const { lookupTone, suggestion, onUseSuggestion, onRejectSuggestion } = props;
+
+  // Close the keyboard first, so the result shows up instead of hiding behind it
+  const tapLookUp = () => {
+    Keyboard.dismiss();
+    if (!lookingUp && onLookUp) onLookUp();
+  };
+  const tapScan = () => {
+    Keyboard.dismiss();
+    onScanBarcode?.();
+  };
+
+  // The result box: green when found, gold for a note, red when the database couldn't be reached
+  const toneBox =
+    lookupTone === 'good'
+      ? { backgroundColor: colors.greenTintBg, borderColor: colors.primaryGreen }
+      : lookupTone === 'problem'
+        ? { backgroundColor: colors.errorBg, borderColor: colors.errorBorder }
+        : undefined;
+  const toneVariant = lookupTone === 'note' ? 'gold' : 'default';
+  const toneText = lookupTone === 'good' ? colors.greenTintText : lookupTone === 'problem' ? colors.error : colors.textPrimary;
+
+  const productPhoto = (uri: string) => (
+    <Image
+      source={{ uri }}
+      accessibilityIgnoresInvertColors
+      accessible={false}
+      resizeMode="contain"
+      style={{ width: 72, height: 72, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}
+    />
+  );
+  const credit = (
+    <Text style={{ fontSize: typography.caption, color: colors.textSecondary }}>Product information from Open Food Facts</Text>
+  );
 
   const label = { fontSize: typography.bodySmall, fontWeight: typography.semibold, color: colors.textPrimary, marginBottom: spacing.xs };
   const hint = { fontSize: typography.caption, color: colors.textSecondary, marginTop: spacing.xs };
@@ -278,39 +321,82 @@ export function ConfirmCard(props: Props) {
         placeholder="13 digits under the barcode"
         keyboardType="number-pad"
         error={errors.barcode}
-        hint={onLookUp ? 'Type the numbers under the barcode, then tap Look up product' : 'Scanning the barcode with the camera is coming in a later update'}
+        hint={
+          onScanBarcode
+            ? 'Scan the barcode on the pack, or type the numbers and tap Look up'
+            : onLookUp
+              ? 'Type the numbers under the barcode, then tap Look up'
+              : 'Scanning the barcode with the camera is coming in a later update'
+        }
       />
 
-      {!!onLookUp && (
+      {(!!onLookUp || !!onScanBarcode) && (
         <View style={{ gap: spacing.sm }}>
-          <Button variant="secondary" onPress={() => { if (!lookingUp) onLookUp(); }}>
-            {lookingUp ? 'Looking up…' : 'Look up product'}
-          </Button>
+          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+            {!!onScanBarcode && (
+              <Button variant="secondary" onPress={tapScan} style={{ flex: 1 }}>
+                Scan barcode
+              </Button>
+            )}
+            {!!onLookUp && (
+              <Button variant="secondary" onPress={tapLookUp} loading={lookingUp} style={{ flex: 1 }}>
+                Look up
+              </Button>
+            )}
+          </View>
 
-          {!!lookupMessage && (
-            <Text
-              accessibilityLiveRegion="polite"
-              style={{ fontSize: typography.bodySmall, color: found ? colors.primaryGreen : lookupStatus === 'unavailable' ? colors.error : colors.textSecondary }}
-            >
-              {lookupMessage}
+          {!!cameraMessage && (
+            <Text accessibilityLiveRegion="polite" style={{ fontSize: typography.bodySmall, color: colors.textSecondary }}>
+              {cameraMessage}
             </Text>
           )}
+          {!!onOpenSettings && (
+            <Button variant="secondary" onPress={onOpenSettings}>
+              Open phone Settings
+            </Button>
+          )}
 
-          {found && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              {!!form.imageUrl && (
-                <Image
-                  source={{ uri: form.imageUrl }}
-                  accessibilityIgnoresInvertColors
-                  accessible={false}
-                  resizeMode="contain"
-                  style={{ width: 72, height: 72, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }}
-                />
-              )}
-              <Text style={{ flex: 1, fontSize: typography.caption, color: colors.textSecondary }}>
-                Product information from Open Food Facts
-              </Text>
-            </View>
+          {!!lookupMessage && (
+            <Card variant={toneVariant} style={toneBox}>
+              <View style={{ gap: spacing.md }}>
+                <Text accessibilityLiveRegion="polite" style={{ fontSize: typography.body, fontWeight: typography.semibold, color: toneText }}>
+                  {lookupMessage}
+                </Text>
+
+                {found && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                    {!!form.imageUrl && productPhoto(form.imageUrl)}
+                    <View style={{ flex: 1 }}>{credit}</View>
+                  </View>
+                )}
+
+                {lookupStatus === 'suggested' && !!suggestion && (
+                  <>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                      {!!suggestion.imageUrl && productPhoto(suggestion.imageUrl)}
+                      <View style={{ flex: 1, gap: spacing.xs }}>
+                        <Text style={{ fontSize: typography.body, fontWeight: typography.bold, color: colors.textPrimary }}>
+                          {suggestion.name || 'No name in the database'}
+                        </Text>
+                        {credit}
+                      </View>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: spacing.sm }}>
+                      {!!onRejectSuggestion && (
+                        <Button variant="secondary" onPress={onRejectSuggestion} style={{ flex: 1 }}>
+                          Not this one
+                        </Button>
+                      )}
+                      {!!onUseSuggestion && (
+                        <Button variant="primary" onPress={onUseSuggestion} style={{ flex: 1 }}>
+                          Use this
+                        </Button>
+                      )}
+                    </View>
+                  </>
+                )}
+              </View>
+            </Card>
           )}
         </View>
       )}

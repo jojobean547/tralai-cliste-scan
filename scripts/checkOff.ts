@@ -9,7 +9,7 @@ import {
   addToCache, isFresh, parseProductReply, productUrl, readCache, tidyName,
   type LookupProduct, type ProductCache,
 } from '../lib/openFoodFacts';
-import { applyProduct, lookupMessage, nameForCard, type LookupStatus } from '../lib/productLookup';
+import { applyProduct, lookupMessage, lookupTone, nameForCard, type LookupStatus } from '../lib/productLookup';
 
 let passed = 0;
 let failed = 0;
@@ -106,6 +106,7 @@ check('brand overlapping the name', nameForCard(make({ product_name: 'Organic bl
 check('size without a unit left out', nameForCard(make({ product_name: 'Smarties', brand: 'Nestlé', quantity: '1' })), 'Nestlé Smarties');
 check('multipack size kept', nameForCard(make({ product_name: 'Curlywurly', brand: 'Cadbury', quantity: '4 × 21.5g' })), 'Cadbury Curlywurly 4 × 21.5g');
 check('accented brand already there', nameForCard(make({ product_name: 'Nescafe Gold Blend', brand: 'Nescafé' })), 'Nescafe Gold Blend');
+check('brand inside a longer word still added', nameForCard(make({ product_name: 'Chocolate Biscuits', brand: 'Choco Bistro', quantity: '200 g' })), 'Choco Bistro Chocolate Biscuits 200 g');
 check('two-word brand, nothing shared', nameForCard(make({ product_name: 'Simply Better Pistachio Spread', brand: 'Dunnes Stores' })), 'Dunnes Stores Simply Better Pistachio Spread');
 
 // ─── Filling the card ───
@@ -118,8 +119,9 @@ check('typed name kept', applyProduct({ ...blankForm(), name: 'Beans' }, p!).nam
 check('no photo keeps the old one', applyProduct({ ...blankForm(), imageUrl: 'https://old.jpg' }, make({ product_name: 'X' })).imageUrl, 'https://old.jpg');
 
 // ─── Messages ───
-const statuses: LookupStatus[] = ['idle', 'loading', 'found', 'notFound', 'unavailable', 'invalid', 'storeCode'];
+const statuses: LookupStatus[] = ['idle', 'loading', 'found', 'suggested', 'notFound', 'unavailable', 'invalid'];
 check('messages only after a look-up', statuses.map((s) => lookupMessage(s) !== null), [false, false, true, true, true, true, true]);
+check('box colours', statuses.map(lookupTone), [null, null, 'good', 'note', 'note', 'problem', 'note']);
 
 // ─── The on-phone cache ───
 check('10 days old is fresh', isFresh(make({ fetched_at: daysAgo(10) }), NOW), true);

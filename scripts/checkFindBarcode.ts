@@ -9,6 +9,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { OcrPiece } from '../lib/labelParser/extractFromOcr';
 import { barcodeKind, findBarcodes, normaliseBarcode } from '../lib/labelParser/findBarcode';
+import { barcodeFromScan } from '../lib/barcode';
+import { cameraMessage, type CameraAccess } from '../lib/scanner';
 import { keyWords, nameScore, nameVerdict, packCount, parseSize, sizeVerdict } from './offMatch';
 
 let failures = 0;
@@ -37,6 +39,17 @@ expect('13 digits starting with 04 is a store code', barcodeKind('0412345678901'
 expect('other 8 digits is a product', barcodeKind('53994363'), 'product');
 expect('German 400 is a product, not a store code', barcodeKind('4005808837311'), 'product');
 expect('American 0… 13 digits is a product', barcodeKind('0012345678905'), 'product');
+
+// ─── What the camera reads ───
+expect('camera: EAN-13 as read', barcodeFromScan('5000157024671'), '5000157024671');
+expect('camera: EAN-8 as read', barcodeFromScan('53994363'), '53994363');
+expect('camera: 12-digit UPC-A gets its 0 back', barcodeFromScan('012345678905'), '0012345678905');
+expect('camera: padded 8-digit unpadded', barcodeFromScan('0000020106331'), '20106331');
+expect('camera: misread (bad check digit) ignored', barcodeFromScan('5000157024672'), null);
+expect('camera: a web address ignored', barcodeFromScan('https://example.com'), null);
+expect('camera: spaces around trimmed', barcodeFromScan(' 5000157024671 '), '5000157024671');
+const accessStates: CameraAccess[] = ['unknown', 'granted', 'denied', 'blocked'];
+expect('camera messages only when there is a problem', accessStates.map((a) => cameraMessage(a) !== null), [false, false, true, true]);
 
 // On the real development labels
 const ocr: Record<string, OcrPiece[]> = JSON.parse(readFileSync(join(process.cwd(), 'parser-data', 'p2b_ocr_raw.json'), 'utf-8'));

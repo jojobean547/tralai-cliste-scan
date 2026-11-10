@@ -12,7 +12,10 @@ import {
   checkForm, chooseDeal as chooseDealRule, emptyForm, formToBasketItem,
   type ConfirmForm, type DealChoice, type FormErrors,
 } from '../lib/confirmForm';
-import { applyProduct, lookupMessage, nameForCard } from '../lib/productLookup';
+import { barcodeKind } from '../lib/barcode';
+import type { LookupProduct } from '../lib/openFoodFacts';
+import { applyProduct, lookupMessage, lookupTone, nameForCard } from '../lib/productLookup';
+import { useBarcodeScanner } from './useBarcodeScanner';
 import { useBasket } from './useBasket';
 import { useProductLookup } from './useProductLookup';
 
@@ -84,13 +87,37 @@ export function useScanScreen() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }, [resetLookup]);
 
-  const lookUpBarcode = async () => {
-    const p = await lookup.lookUp(form.barcodeText);
-    if (!p) return;
-    const keptOwnName = form.name.trim() !== '';
+  // text and currentName are passed in after a camera scan, when the form on
+  // screen hasn't caught up yet; a tap on "Look up" uses what's on the card
+  const fillFrom = (p: LookupProduct, currentName: string) => {
+    const keptOwnName = currentName.trim() !== '';
     filledBy.current = { barcode: p.barcode, name: keptOwnName ? null : nameForCard(p), imageUrl: p.image_url };
     setForm((prev) => applyProduct(prev, p));
   };
+
+  const lookUpBarcode = async (text: string = form.barcodeText, currentName: string = form.name) => {
+    const p = await lookup.lookUp(text);
+    if (!p) return;
+    // A shop's own code is only a suggestion: nothing is filled in until "Use this"
+    if (barcodeKind(p.barcode) === 'storeCode') return;
+    fillFrom(p, currentName);
+  };
+
+  // "Use this" on a suggested product
+  const acceptSuggestion = () => {
+    if (lookup.status !== 'suggested' || !lookup.product) return;
+    const nameWasFilled = filledBy.current !== null && filledBy.current.name === form.name;
+    fillFrom(lookup.product, nameWasFilled ? '' : form.name);
+    lookup.accept();
+  };
+
+  // A scanned barcode goes into the box and is looked up straight away.
+  // A name the last look-up filled in doesn't count as the shopper's own.
+  const scanner = useBarcodeScanner((barcode) => {
+    const nameWasFilled = filledBy.current !== null && filledBy.current.name === form.name;
+    setField('barcodeText', barcode);
+    lookUpBarcode(barcode, nameWasFilled ? '' : form.name);
+  });
 
   return {
     loaded,
@@ -126,7 +153,23 @@ export function useScanScreen() {
 
     lookupStatus: lookup.status,
     lookupMessage: lookupMessage(lookup.status),
-    lookUpBarcode,
+    lookupTone: lookupTone(lookup.status),
+    lookUpBarcode: () => lookUpBarcode(),
+    // A suggested product (shop's own code), shown with "Use this" / "Not this one"
+    suggestion:
+      lookup.status === 'suggested' && lookup.product
+        ? { name: nameForCard(lookup.product), imageUrl: lookup.product.image_url }
+        : null,
+    acceptSuggestion,
+    rejectSuggestion: () => lookup.reset(),
+
+    scanBarcode: scanner.open,
+    scannerOpen: scanner.isOpen,
+    onBarcodeScanned: scanner.onScanned,
+    closeScanner: scanner.close,
+    cameraMessage: scanner.message,
+    cameraBlocked: scanner.cameraBlocked,
+    openCameraSettings: scanner.openSettings,
 
     // Returns false (and shows what's missing) if the card isn't complete yet
     addToBasket: (): boolean => {
