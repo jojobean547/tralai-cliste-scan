@@ -10,21 +10,47 @@ import type { ConfirmForm } from './confirmForm';
 import type { LookupProduct } from './openFoodFacts';
 
 // idle → loading → found / notFound / unavailable
-// invalid = the barcode numbers don't add up, so nothing was looked up
-export type LookupStatus = 'idle' | 'loading' | 'found' | 'notFound' | 'unavailable' | 'invalid';
+// invalid   = the barcode numbers don't add up, so nothing was looked up
+// storeCode = a shop's own code (lib/barcode.ts), so nothing was looked up
+export type LookupStatus = 'idle' | 'loading' | 'found' | 'notFound' | 'unavailable' | 'invalid' | 'storeCode';
 
-const squash = (s: string) => s.toLowerCase().replace(/\s+/g, '');
+// Lower case, letters and numbers only, so "Hellmann's" and "Hellmanns" compare equal
+const squash = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '');
+const words = (s: string) => s.split(/\s+/).filter(Boolean);
+
+// The brand to put in front of the name, or '' when the name already has it.
+//   "Hellmann's" + "Hellmanns Thousand Island"   → ''            (already there)
+//   "Lyons Tea"  + "Lyons Original Blend Tea"     → ''            (starts with the brand's first word)
+//   "Biona Organic" + "Organic black beans"       → 'Biona'       (overlap dropped)
+//   "Heinz"      + "Baked Beans"                  → 'Heinz'
+function brandPrefix(brand: string, name: string): string {
+  const b = words(brand);
+  const n = squash(name);
+  if (b.length === 0 || n.includes(squash(brand)) || n.includes(squash(b[0]))) return '';
+  // Drop brand words the name already starts with ("Organic" in "Biona Organic" + "Organic …")
+  const nameWords = words(name).map(squash);
+  for (let k = Math.min(b.length - 1, nameWords.length); k > 0; k--) {
+    if (b.slice(b.length - k).map(squash).join(' ') === nameWords.slice(0, k).join(' ')) return b.slice(0, b.length - k).join(' ');
+  }
+  return brand;
+}
+
+// Open Food Facts sometimes has a bare number as the size ("1", "150"); only
+// sizes with a unit ("415 g", "4 x 21.5g", "1 litre") are worth showing.
+const hasUnit = (q: string) => /\d/.test(q) && /[a-z]/i.test(q);
 
 // The name for the card: brand + name + size, without saying anything twice.
-//   Heinz / "Baked Beans" / "415 g"  →  "Heinz Baked Beans 415 g"
-//   Heinz / "Heinz Beanz" / "415 g"  →  "Heinz Beanz 415 g"
-//   –     / "Beans 415g"  / "415 g"  →  "Beans 415g"
+//   Heinz / "Baked Beans" / "415 g"   →  "Heinz Baked Beans 415 g"
+//   Heinz / "Heinz Beanz" / "415 g"   →  "Heinz Beanz 415 g"
+//   –     / "Beans 415g"  / "415 g"   →  "Beans 415g"
+//   Nestlé / "Smarties"   / "1"       →  "Nestlé Smarties"
 export function nameForCard(p: LookupProduct): string {
   const name = p.product_name;
   const parts: string[] = [];
-  if (p.brand && !squash(name).includes(squash(p.brand))) parts.push(p.brand);
+  const brand = p.brand ? brandPrefix(p.brand, name) : '';
+  if (brand) parts.push(brand);
   if (name) parts.push(name);
-  if (p.quantity && !squash(name).includes(squash(p.quantity))) parts.push(p.quantity);
+  if (p.quantity && hasUnit(p.quantity) && !squash(name).includes(squash(p.quantity))) parts.push(p.quantity);
   return parts.join(' ');
 }
 
@@ -49,6 +75,8 @@ export function lookupMessage(status: LookupStatus): string | null {
       return "Couldn't reach the product database. Check your signal and try again, or type the name yourself.";
     case 'invalid':
       return 'Check the barcode numbers first.';
+    case 'storeCode':
+      return "This is the shop's own code, not a product barcode, so it can't be looked up. You can type the name yourself.";
     default:
       return null;
   }

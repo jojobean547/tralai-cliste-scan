@@ -69,12 +69,28 @@ export function parseSize(text: string): Size | null {
 
 export type SizeVerdict = 'same' | 'different' | 'unknown';
 
-// Same if the totals agree, or the single-item sizes do ("4 x 125g" vs "125 g")
-export function sizeVerdict(labelSize: string, offSize: string): SizeVerdict {
+// How many are in the pack, from the label's name or size: "4pk", "4 pack", "4's", "x4"
+export function packCount(text: string): number | null {
+  const m = /(\d+)\s*(?:pk|pack|'s)\b/i.exec(text) ?? /\bx\s*(\d+)\b/i.exec(text);
+  const n = m ? Number(m[1]) : NaN;
+  return n >= 2 && n <= 48 ? n : null;
+}
+
+// Labels round sizes (72 ml for 72.5 ml), so allow 2%, at least 0.5
+const near = (x: number, y: number) => Math.abs(x - y) <= Math.max(0.5, 0.02 * Math.max(x, y));
+
+// Same if the totals agree, or the single-item sizes do ("4 x 125g" vs "125 g").
+// labelName is used for multipacks where the label shows one item's size:
+// "Aero 4pk" at 27 g matches 108 g.
+// Grams against millilitres can't be compared (ice cream is sold both ways),
+// so that's 'unknown', not 'different'.
+export function sizeVerdict(labelSize: string, offSize: string, labelName: string = ''): SizeVerdict {
   const a = parseSize(labelSize);
   const b = parseSize(offSize);
   if (!a || !b) return 'unknown';
-  if (a.unit !== b.unit) return 'different';
-  const near = (x: number, y: number) => Math.abs(x - y) < 0.5;
-  return near(a.total, b.total) || near(a.each, b.each) || near(a.total, b.each) || near(a.each, b.total) ? 'same' : 'different';
+  if (a.unit !== b.unit) return 'unknown';
+  if (near(a.total, b.total) || near(a.each, b.each) || near(a.total, b.each) || near(a.each, b.total)) return 'same';
+  const pack = packCount(`${labelName} ${labelSize}`);
+  if (pack && (near(a.each * pack, b.total) || near(a.each, b.total * pack))) return 'same';
+  return 'different';
 }

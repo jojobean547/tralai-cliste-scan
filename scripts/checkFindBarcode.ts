@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { OcrPiece } from '../lib/labelParser/extractFromOcr';
 import { barcodeKind, findBarcodes, normaliseBarcode } from '../lib/labelParser/findBarcode';
-import { keyWords, nameScore, nameVerdict, parseSize, sizeVerdict } from './offMatch';
+import { keyWords, nameScore, nameVerdict, packCount, parseSize, sizeVerdict } from './offMatch';
 
 let failures = 0;
 function expect(what: string, actual: unknown, expected: unknown) {
@@ -32,7 +32,11 @@ expect('Irish barcode is a product', barcodeKind('5391234567890'), 'product');
 expect('8 digits starting with 2 is a store code', barcodeKind('20106331'), 'storeCode');
 expect('13 digits starting with 2 is a store code', barcodeKind('2058262000007'), 'storeCode');
 expect('13 digits starting with 02 is a store code', barcodeKind('0228170000000'), 'storeCode');
-expect('other 8 digits is a product', barcodeKind('03251416'), 'product');
+expect('8 digits starting with 0 is a store code', barcodeKind('03251416'), 'storeCode');
+expect('13 digits starting with 04 is a store code', barcodeKind('0412345678901'), 'storeCode');
+expect('other 8 digits is a product', barcodeKind('53994363'), 'product');
+expect('German 400 is a product, not a store code', barcodeKind('4005808837311'), 'product');
+expect('American 0… 13 digits is a product', barcodeKind('0012345678905'), 'product');
 
 // On the real development labels
 const ocr: Record<string, OcrPiece[]> = JSON.parse(readFileSync(join(process.cwd(), 'parser-data', 'p2b_ocr_raw.json'), 'utf-8'));
@@ -69,7 +73,12 @@ expect('different size', sizeVerdict('400g', '415 g'), 'different');
 expect("can't tell", sizeVerdict('6 pack', '6'), 'unknown');
 expect('multipack total matches', sizeVerdict('4 x 125g', '500 g'), 'same');
 expect('multipack single matches', sizeVerdict('4 x 125g', '125 g'), 'same');
-expect('grams vs ml', sizeVerdict('500g', '500 ml'), 'different');
+expect("grams vs ml can't be compared", sizeVerdict('90mls', '62g'), 'unknown');
+expect('rounded on the label', sizeVerdict('72mls', '72,5 ml'), 'same');
+expect('a real difference', sizeVerdict('600gm', '500g'), 'different');
+expect('4pk label shows one bar', sizeVerdict('27grm', '108g', 'Aero Bubbly Bar Pep/M 4pk'), 'same');
+expect('no pack count, no excuse', sizeVerdict('27grm', '108g', 'Aero Bubbly Bar'), 'different');
+expect('pack counts', [packCount('Curly Wurly 4pk'), packCount('Soft Buns 4\'s'), packCount('6 Pack'), packCount('Tea 80\'s'), packCount('Beans')], [4, 4, 6, null, null]);
 
 console.log(failures === 0 ? '\nAll checks passed' : `\n${failures} check(s) failed`);
 if (failures > 0) process.exit(1);

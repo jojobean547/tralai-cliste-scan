@@ -4,11 +4,13 @@
 // Looking up a barcode: checks the phone's own cache first, then asks
 // Open Food Facts, and remembers what it found (saved under tralai.products.v1).
 // With no signal, a product looked up before still works, even if it's old.
+// A shop's own in-store code isn't looked up at all (see lib/barcode.ts): the
+// same number can be a different product elsewhere, so the answer can't be trusted.
 // hooks/useScanScreen.ts uses this; the confirm card never calls it directly.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useRef, useState } from 'react';
-import { isValidBarcode } from '../lib/barcode';
+import { barcodeKind, isValidBarcode, normaliseBarcode } from '../lib/barcode';
 import { addToCache, isFresh, readCache, type LookupProduct, type ProductCache } from '../lib/openFoodFacts';
 import type { LookupStatus } from '../lib/productLookup';
 import { fetchProduct } from '../services/productService';
@@ -41,10 +43,16 @@ export function useProductLookup() {
   // Returns the product when found, otherwise null (the status says why)
   const lookUp = useCallback(async (barcodeText: string): Promise<LookupProduct | null> => {
     if (busy.current) return null;
-    const barcode = barcodeText.replace(/\D/g, '');
-    if (!isValidBarcode(barcode)) {
+    const digits = barcodeText.replace(/\D/g, '');
+    if (!isValidBarcode(digits)) {
       setProduct(null);
       setStatus('invalid');
+      return null;
+    }
+    const barcode = normaliseBarcode(digits);
+    if (barcodeKind(barcode) === 'storeCode') {
+      setProduct(null);
+      setStatus('storeCode');
       return null;
     }
 

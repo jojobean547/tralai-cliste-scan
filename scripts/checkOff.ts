@@ -99,6 +99,14 @@ check('brand + name + size', nameForCard(p!), 'Heinz Baked Beans in Tomato Sauce
 check('brand already in name', nameForCard(make({ product_name: 'Heinz Beanz', brand: 'Heinz', quantity: '415 g' })), 'Heinz Beanz 415 g');
 check('size already in name', nameForCard(make({ product_name: 'Beans 415g', quantity: '415 g' })), 'Beans 415g');
 check('no name: brand + size', nameForCard(make({ brand: 'Avonmore', quantity: '2 L' })), 'Avonmore 2 L');
+// From the shelf-label test (10 Nov 2026)
+check("brand with apostrophe not repeated", nameForCard(make({ product_name: 'Hellmanns Thousand Island Dressing', brand: "Hellmann's", quantity: '250ml' })), 'Hellmanns Thousand Island Dressing 250ml');
+check('brand first word already there', nameForCard(make({ product_name: 'Lyons Original Blend Tea', brand: 'Lyons Tea' })), 'Lyons Original Blend Tea');
+check('brand overlapping the name', nameForCard(make({ product_name: 'Organic black beans', brand: 'Biona Organic', quantity: '400 g' })), 'Biona Organic black beans 400 g');
+check('size without a unit left out', nameForCard(make({ product_name: 'Smarties', brand: 'Nestlé', quantity: '1' })), 'Nestlé Smarties');
+check('multipack size kept', nameForCard(make({ product_name: 'Curlywurly', brand: 'Cadbury', quantity: '4 × 21.5g' })), 'Cadbury Curlywurly 4 × 21.5g');
+check('accented brand already there', nameForCard(make({ product_name: 'Nescafe Gold Blend', brand: 'Nescafé' })), 'Nescafe Gold Blend');
+check('two-word brand, nothing shared', nameForCard(make({ product_name: 'Simply Better Pistachio Spread', brand: 'Dunnes Stores' })), 'Dunnes Stores Simply Better Pistachio Spread');
 
 // ─── Filling the card ───
 const filled = applyProduct({ ...blankForm(), barcodeText: '5000 1570 24671', priceText: '1.29' }, p!);
@@ -110,8 +118,8 @@ check('typed name kept', applyProduct({ ...blankForm(), name: 'Beans' }, p!).nam
 check('no photo keeps the old one', applyProduct({ ...blankForm(), imageUrl: 'https://old.jpg' }, make({ product_name: 'X' })).imageUrl, 'https://old.jpg');
 
 // ─── Messages ───
-const statuses: LookupStatus[] = ['idle', 'loading', 'found', 'notFound', 'unavailable', 'invalid'];
-check('messages only after a look-up', statuses.map((s) => lookupMessage(s) !== null), [false, false, true, true, true, true]);
+const statuses: LookupStatus[] = ['idle', 'loading', 'found', 'notFound', 'unavailable', 'invalid', 'storeCode'];
+check('messages only after a look-up', statuses.map((s) => lookupMessage(s) !== null), [false, false, true, true, true, true, true]);
 
 // ─── The on-phone cache ───
 check('10 days old is fresh', isFresh(make({ fetched_at: daysAgo(10) }), NOW), true);

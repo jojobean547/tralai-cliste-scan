@@ -85,7 +85,7 @@ async function main() {
       row.name_score = String(score);
       row.name_verdict = labelName ? nameVerdict(score) : '';
       row.off_size = p.quantity ?? '';
-      row.size_verdict = sizeVerdict(row.label_size, row.off_size);
+      row.size_verdict = sizeVerdict(row.label_size, row.off_size, labelName);
       row.has_photo = p.image_url ? 'yes' : 'no';
     }
     fresh.set(key(row), row);
