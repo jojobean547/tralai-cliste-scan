@@ -14,6 +14,12 @@ import type { ConfirmForm, DealChoice, FormErrors } from '@/lib/confirmForm';
 import type { LookupStatus } from '@/lib/productLookup';
 import { Image, Pressable, Switch, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
+// The − and + buttons look compact (40 high), matching the basket, but an
+// invisible margin (hitSlop) keeps the area you can tap at the full 56 high
+// for older shoppers.
+const STEP_HEIGHT = 40;
+const STEP_WIDTH = 48;
+
 type Props = {
   title: string;
   form: ConfirmForm;
@@ -101,6 +107,11 @@ export function ConfirmCard(props: Props) {
   });
 
   const smallBox = (hasError: boolean) => ({ ...inputStyle(hasError), width: 72, textAlign: 'center' as const });
+
+  const slop = Math.max(0, Math.ceil((TouchTargets.minHeight - STEP_HEIGHT) / 2));
+  const stepHitSlop = { top: slop, bottom: slop, left: 4, right: 4 };
+  const stepButton = { width: STEP_WIDTH, height: STEP_HEIGHT, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center' as const, justifyContent: 'center' as const };
+  const stepLabel = { fontSize: typography.heading3, fontWeight: typography.semibold, color: colors.textPrimary };
 
   const dealPill = (choice: DealChoice, text: string) => {
     const selected = form.dealChoice === choice;
@@ -231,25 +242,27 @@ export function ConfirmCard(props: Props) {
 
       <View>
         <Text style={label}>How many?</Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <Pressable
             onPress={() => onChange('quantity', Math.max(1, form.quantity - 1))}
             accessibilityRole="button"
             accessibilityLabel="One fewer"
-            style={{ width: TouchTargets.minWidth, height: TouchTargets.minHeight, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}
+            hitSlop={stepHitSlop}
+            style={stepButton}
           >
-            <Text style={{ fontSize: typography.heading2, color: colors.textPrimary }}>−</Text>
+            <Text style={stepLabel}>−</Text>
           </Pressable>
-          <Text accessibilityLabel={`Quantity ${form.quantity}`} style={{ minWidth: 32, textAlign: 'center', fontSize: typography.heading2, fontWeight: typography.bold, color: colors.textPrimary }}>
+          <Text accessibilityLabel={`Quantity ${form.quantity}`} style={{ minWidth: 28, textAlign: 'center', fontSize: typography.heading3, fontWeight: typography.bold, color: colors.textPrimary }}>
             {form.quantity}
           </Text>
           <Pressable
             onPress={() => onChange('quantity', form.quantity + 1)}
             accessibilityRole="button"
             accessibilityLabel="One more"
-            style={{ width: TouchTargets.minWidth, height: TouchTargets.minHeight, borderRadius: radii.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center' }}
+            hitSlop={stepHitSlop}
+            style={stepButton}
           >
-            <Text style={{ fontSize: typography.heading2, color: colors.textPrimary }}>+</Text>
+            <Text style={stepLabel}>+</Text>
           </Pressable>
         </View>
       </View>

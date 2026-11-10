@@ -11,6 +11,12 @@ import { Image, Pressable, Text, View } from 'react-native';
 
 const ICON_SIZE = 56;
 
+// The − and + buttons look compact (40 high) so the card stays short, but an
+// invisible margin (hitSlop) keeps the area you can tap at the full 56 high
+// for older shoppers.
+const STEP_HEIGHT = 40;
+const STEP_WIDTH = 48;
+
 // The product photo if there is one, otherwise the category icon in a soft green circle
 function LineIconView({ icon }: { icon: LineIcon }) {
   const { colors, radii } = useTheme();
@@ -49,10 +55,11 @@ type Props = {
 export function BasketLine({ line, quantity, store, onDecrease, onIncrease }: Props) {
   const { colors, typography, spacing, radii } = useTheme();
 
-  // Big square buttons, at least 56 points, for older shoppers
+  const slop = Math.max(0, Math.ceil((TouchTargets.minHeight - STEP_HEIGHT) / 2));
+  const hitSlop = { top: slop, bottom: slop, left: 4, right: 4 };
   const stepButton = {
-    width: TouchTargets.minWidth,
-    height: TouchTargets.minHeight,
+    width: STEP_WIDTH,
+    height: STEP_HEIGHT,
     borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.border,
@@ -60,7 +67,7 @@ export function BasketLine({ line, quantity, store, onDecrease, onIncrease }: Pr
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   };
-  const stepLabel = { fontSize: typography.heading2, fontWeight: typography.semibold, color: colors.textPrimary };
+  const stepLabel = { fontSize: typography.heading3, fontWeight: typography.semibold, color: colors.textPrimary };
   const small = { fontSize: typography.bodySmall, color: colors.textSecondary, marginTop: spacing.xs };
 
   return (
@@ -84,19 +91,20 @@ export function BasketLine({ line, quantity, store, onDecrease, onIncrease }: Pr
         </View>
       </View>
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.sm }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
           <Pressable
             onPress={onDecrease}
             accessibilityRole="button"
             accessibilityLabel={quantity === 1 ? `Remove ${line.title}` : `One fewer ${line.title}`}
+            hitSlop={hitSlop}
             style={stepButton}
           >
             <Text style={stepLabel}>−</Text>
           </Pressable>
           <Text
             accessibilityLabel={`Quantity ${quantity}`}
-            style={{ minWidth: 32, textAlign: 'center', fontSize: typography.heading2, fontWeight: typography.bold, color: colors.textPrimary }}
+            style={{ minWidth: 28, textAlign: 'center', fontSize: typography.heading3, fontWeight: typography.bold, color: colors.textPrimary }}
           >
             {quantity}
           </Text>
@@ -104,6 +112,7 @@ export function BasketLine({ line, quantity, store, onDecrease, onIncrease }: Pr
             onPress={onIncrease}
             accessibilityRole="button"
             accessibilityLabel={`One more ${line.title}`}
+            hitSlop={hitSlop}
             style={stepButton}
           >
             <Text style={stepLabel}>+</Text>
