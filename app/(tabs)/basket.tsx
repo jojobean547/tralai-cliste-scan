@@ -1,6 +1,5 @@
 import { BasketLine } from '@/components/BasketLine';
 import { AppAlert } from '@/components/ui/AppAlert';
-import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAlert } from '@/hooks/useAlert';
 import { useBasket } from '@/hooks/useBasket';
@@ -8,7 +7,7 @@ import { useClubCards } from '@/hooks/useClubCards';
 import { useTheme } from '@/hooks/useTheme';
 import { cardsWorthSwitchingOn, describeLine, euro } from '@/lib/basketDisplay';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function BasketScreen() {
@@ -52,11 +51,23 @@ export default function BasketScreen() {
         />
       ) : (
         <>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingHorizontal: spacing.xl, paddingTop: spacing.lg }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: spacing.xl, paddingTop: spacing.lg }}>
             <Text style={{ fontSize: typography.heading1, fontWeight: typography.bold, color: colors.textPrimary }}>Basket</Text>
-            <Text style={{ fontSize: typography.body, color: colors.textSecondary }}>
-              {itemCount} {itemCount === 1 ? 'item' : 'items'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
+              <Text style={{ fontSize: typography.body, color: colors.textSecondary }}>
+                {itemCount} {itemCount === 1 ? 'item' : 'items'}
+              </Text>
+              {/* Up here, away from the total, so it isn't tapped by mistake. Still asks before clearing. */}
+              <Pressable
+                onPress={confirmClear}
+                accessibilityRole="button"
+                accessibilityLabel="Clear basket"
+                hitSlop={8}
+                style={({ pressed }) => ({ minHeight: 48, justifyContent: 'center', paddingHorizontal: spacing.xs, opacity: pressed ? 0.6 : 1 })}
+              >
+                <Text style={{ fontSize: typography.body, fontWeight: typography.semibold, color: colors.error }}>Clear</Text>
+              </Pressable>
+            </View>
           </View>
 
           <FlatList
@@ -76,7 +87,7 @@ export default function BasketScreen() {
             )}
           />
 
-          <View style={{ padding: spacing.xl, gap: spacing.sm, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }}>
+          <View style={{ paddingHorizontal: spacing.xl, paddingVertical: spacing.lg, gap: spacing.sm, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.border }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
               <Text style={{ fontSize: typography.heading3, color: colors.textPrimary }}>Total</Text>
               <Text style={{ fontSize: typography.heading1, fontWeight: typography.bold, color: colors.textPrimary }}>
@@ -93,7 +104,6 @@ export default function BasketScreen() {
                 Have {cardsToSwitchOn.join(' or ')}? Turn it on in Settings to use club prices.
               </Text>
             )}
-            <Button variant="secondary" size="md" onPress={confirmClear}>Clear basket</Button>
           </View>
         </>
       )}
