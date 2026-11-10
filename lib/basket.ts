@@ -2,14 +2,15 @@
 // so they can be tested on the computer: npx tsx scripts/checkBasket.ts
 // hooks/useBasket.tsx wires these up to the app.
 
+import { isCategoryId } from '../constants/categories';
 import type { BasketItem } from '../types';
 import { basketTotal, lineSaving } from './dealCalculator';
 
 type HasClubCard = (cardName: string) => boolean;
 
-// A unique id for each basket line. There are no barcodes any more,
-// so two scans of the same label become two lines unless the shopper
-// changes the quantity instead.
+// A unique id for each basket line. Barcodes are optional and can repeat,
+// so the line is keyed by its own id. Two scans of the same label become
+// two lines unless the shopper changes the quantity instead.
 export function newLineId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -48,14 +49,24 @@ export function readSavedBasket(raw: string | null): BasketItem[] {
   try {
     const data: unknown = JSON.parse(raw);
     if (!Array.isArray(data)) return [];
-    return data.filter(
-      (i): i is BasketItem =>
-        typeof i === 'object' && i !== null &&
-        typeof i.id === 'string' &&
-        typeof i.price === 'number' && i.price >= 0 &&
-        typeof i.quantity === 'number' && i.quantity > 0 &&
-        typeof i.store_name === 'string',
-    );
+    return data
+      .filter(
+        (i) =>
+          typeof i === 'object' && i !== null &&
+          typeof i.id === 'string' &&
+          typeof i.price === 'number' && i.price >= 0 &&
+          typeof i.quantity === 'number' && i.quantity > 0 &&
+          typeof i.store_name === 'string',
+      )
+      // Lines saved by an older version of the app lack the newer fields
+      .map((i): BasketItem => ({
+        ...i,
+        product_name: typeof i.product_name === 'string' ? i.product_name : '',
+        deal: i.deal ? { ...i.deal, club_only: i.deal.club_only === true } : null,
+        barcode: typeof i.barcode === 'string' ? i.barcode : null,
+        image_url: typeof i.image_url === 'string' ? i.image_url : null,
+        category: isCategoryId(i.category) ? i.category : null,
+      }));
   } catch {
     return [];
   }

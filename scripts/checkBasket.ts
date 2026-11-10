@@ -14,7 +14,8 @@ function expect(what: string, actual: unknown, expected: unknown) {
 
 const item = (id: string, over: Partial<BasketItem> = {}): BasketItem => ({
   id, product_name: '', store_name: 'Tesco', price: 1.2, club_card_price: null,
-  club_card_name: 'Tesco Clubcard', deal: null, quantity: 1, source: 'manual', ...over,
+  club_card_name: 'Tesco Clubcard', deal: null, quantity: 1, source: 'manual',
+  barcode: null, image_url: null, category: null, ...over,
 });
 const noCard = () => false;
 const hasCard = () => true;
@@ -39,6 +40,9 @@ const saved = JSON.stringify([item('ok'), { id: 'broken', price: 'abc' }, item('
 expect('a damaged saved basket keeps only the good lines', readSavedBasket(saved).map((i) => i.id), ['ok']);
 expect('unreadable storage gives an empty basket', readSavedBasket('not json'), []);
 expect('nothing saved yet gives an empty basket', readSavedBasket(null), []);
+const oldSave = JSON.stringify([{ id: 'old', product_name: 'Beans', store_name: 'Tesco', price: 1.2, club_card_price: null,
+  club_card_name: null, deal: null, quantity: 1, source: 'manual' }]);
+expect('a basket saved before barcodes and categories still loads', readSavedBasket(oldSave).map((i) => [i.id, i.barcode, i.category]), [['old', null, null]]);
 expect('line ids are unique', new Set(Array.from({ length: 1000 }, newLineId)).size, 1000);
 
 // ---- What the Basket screen shows ----
@@ -58,6 +62,9 @@ expect('with the card, 1 of a 2-for deal: nudge to add 1 more', withCard.dealNot
 const beans = describeLine(item('b', { product_name: 'Beans', quantity: 4,
   deal: { deal_type: 'qty', deal_qty: 3, deal_pay_qty: 2, deal_price: null, club_only: false } }), 1, noCard);
 expect('3 for 2, four tins: total and saving', [beans.title, beans.dealText, beans.totalText, beans.savingText, beans.dealNote], ['Beans', '3 for 2', '€3.60', 'You save €1.20', null]);
+expect('no photo, no category: basket icon', beans.icon, { kind: 'category', name: 'basket-outline' });
+expect('category picked: its icon', describeLine(item('c', { category: 'dairy_eggs' }), 1, noCard).icon, { kind: 'category', name: 'cheese' });
+expect('product photo wins over category', describeLine(item('p', { category: 'drinks', image_url: 'https://x/y.jpg' }), 1, noCard).icon, { kind: 'image', uri: 'https://x/y.jpg' });
 expect('cards worth switching on', cardsWorthSwitchingOn([tesco, item('x')], noCard), ['Tesco Clubcard']);
 expect('nothing to suggest when the card is on', cardsWorthSwitchingOn([tesco], hasCard), []);
 

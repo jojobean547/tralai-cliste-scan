@@ -5,8 +5,38 @@ import { Card } from '@/components/ui/Card';
 import { StoreBadge } from '@/components/ui/StoreBadge';
 import { TouchTargets } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
-import type { LineDisplay } from '@/lib/basketDisplay';
-import { Pressable, Text, View } from 'react-native';
+import type { LineDisplay, LineIcon } from '@/lib/basketDisplay';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Image, Pressable, Text, View } from 'react-native';
+
+const ICON_SIZE = 56;
+
+// The product photo if there is one, otherwise the category icon in a soft green circle
+function LineIconView({ icon }: { icon: LineIcon }) {
+  const { colors, radii } = useTheme();
+  if (icon.kind === 'image') {
+    return (
+      <Image
+        source={{ uri: icon.uri }}
+        accessibilityIgnoresInvertColors
+        style={{ width: ICON_SIZE, height: ICON_SIZE, borderRadius: radii.md, backgroundColor: colors.surfaceAlt }}
+        resizeMode="contain"
+      />
+    );
+  }
+  return (
+    <View
+      style={{ width: ICON_SIZE, height: ICON_SIZE, borderRadius: ICON_SIZE / 2, backgroundColor: colors.greenTintBg, alignItems: 'center', justifyContent: 'center' }}
+      accessible={false}
+    >
+      <MaterialCommunityIcons
+        name={icon.name as keyof typeof MaterialCommunityIcons.glyphMap}
+        size={30}
+        color={colors.primaryGreen}
+      />
+    </View>
+  );
+}
 
 type Props = {
   line: LineDisplay;
@@ -35,19 +65,24 @@ export function BasketLine({ line, quantity, store, onDecrease, onIncrease }: Pr
 
   return (
     <Card>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm }}>
-        <Text style={{ flex: 1, fontSize: typography.body, fontWeight: typography.semibold, color: colors.textPrimary }}>
-          {line.title}
-        </Text>
-        <StoreBadge store={store} size="sm" />
-      </View>
+      <View style={{ flexDirection: 'row', gap: spacing.md }}>
+        <LineIconView icon={line.icon} />
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm }}>
+            <Text style={{ flex: 1, fontSize: typography.body, fontWeight: typography.semibold, color: colors.textPrimary }}>
+              {line.title}
+            </Text>
+            <StoreBadge store={store} size="sm" />
+          </View>
 
-      <Text style={small}>{line.eachText}</Text>
-      {!!line.clubText && <Text style={small}>{line.clubText}</Text>}
-      {!!line.dealText && (
-        <Text style={{ ...small, color: colors.primaryGreen, fontWeight: typography.semibold }}>{line.dealText}</Text>
-      )}
-      {!!line.dealNote && <Text style={{ ...small, fontStyle: 'italic' }}>{line.dealNote}</Text>}
+          <Text style={small}>{line.eachText}</Text>
+          {!!line.clubText && <Text style={small}>{line.clubText}</Text>}
+          {!!line.dealText && (
+            <Text style={{ ...small, color: colors.primaryGreen, fontWeight: typography.semibold }}>{line.dealText}</Text>
+          )}
+          {!!line.dealNote && <Text style={{ ...small, fontStyle: 'italic' }}>{line.dealNote}</Text>}
+        </View>
+      </View>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>

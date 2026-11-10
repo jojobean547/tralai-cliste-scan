@@ -63,7 +63,8 @@ console.log(`  could be added straight away (before the shopper's check): ${read
 console.log('\nDeal calculator\n');
 const item = (over: Partial<BasketItem>): BasketItem => ({
   id: 't', product_name: 'Test', store_name: 'Tesco', price: 1.2, club_card_price: null,
-  club_card_name: 'Tesco Clubcard', deal: null, quantity: 1, source: 'manual', ...over,
+  club_card_name: 'Tesco Clubcard', deal: null, quantity: 1, source: 'manual',
+  barcode: null, image_url: null, category: null, ...over,
 });
 const noCard = () => false;
 const hasCard = () => true;

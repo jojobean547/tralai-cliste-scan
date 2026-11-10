@@ -3,6 +3,7 @@
 // It never changes a value it is unsure about. It flags it instead.
 
 import { clubCardFor } from '../../constants/stores';
+import type { CategoryId } from '../../constants/categories';
 import type { BasketItem, DealInput } from '../../types';
 import { PARSER_VERSION, type ParseResult } from './parseLabel';
 
@@ -24,6 +25,9 @@ export type ConfirmDraft = {
   notes: string[];                 // shown on the confirm card
   possiblyWeighed: boolean;
   parser_version: string;
+  barcode: string | null;          // filled by barcode reading / lookup in a later step
+  image_url: string | null;
+  category: CategoryId | null;
 };
 
 export function toConfirmDraft(parsed: ParseResult, store: string): ConfirmDraft {
@@ -102,6 +106,9 @@ export function toConfirmDraft(parsed: ParseResult, store: string): ConfirmDraft
     notes,
     possiblyWeighed,
     parser_version: PARSER_VERSION,
+    barcode: null,
+    image_url: null,
+    category: null,
   };
 }
 
@@ -120,5 +127,8 @@ export function draftToBasketItem(draft: ConfirmDraft, id: string, source: 'scan
     deal: draft.deal,
     quantity: draft.quantity,
     source,
+    barcode: draft.barcode,
+    image_url: draft.image_url,
+    category: draft.category,
   };
 }

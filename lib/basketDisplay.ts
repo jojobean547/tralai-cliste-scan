@@ -2,6 +2,7 @@
 // tested on the computer:  npx tsx scripts/checkBasket.ts
 // The screen and components only lay this text out.
 
+import { categoryIcon } from '../constants/categories';
 import type { BasketItem, DealInput } from '../types';
 import { lineSaving, lineTotal, unitPrice } from './dealCalculator';
 
@@ -16,7 +17,10 @@ export function describeDeal(deal: DealInput | null): string | null {
   return null;
 }
 
+export type LineIcon = { kind: 'image'; uri: string } | { kind: 'category'; name: string };
+
 export type LineDisplay = {
+  icon: LineIcon;             // product photo if there is one, otherwise the category icon
   title: string;              // product name, or "Item 3" when none was typed
   eachText: string;           // "€1.20 each"
   clubText: string | null;    // club price, applied or not
@@ -51,6 +55,7 @@ export function describeLine(item: BasketItem, position: number, hasClubCard: Ha
 
   const saving = lineSaving(item, hasClubCard);
   return {
+    icon: item.image_url ? { kind: 'image', uri: item.image_url } : { kind: 'category', name: categoryIcon(item.category) },
     title: item.product_name.trim() || `Item ${position}`,
     eachText: `${euro(unitPrice(item, hasClubCard))} each`,
     clubText,

@@ -1,5 +1,7 @@
 // The app's data dictionary.
 
+import type { CategoryId } from '../constants/categories';
+
 // A deal as the shopper confirms it on the confirm card.
 //   'price' = "3 for €4":  deal_qty 3, deal_price 4
 //   'qty'   = "3 for 2":   deal_qty 3, deal_pay_qty 2 (cheapest one free)
@@ -13,7 +15,7 @@ export type DealInput = {
 
 // One line in the basket.
 export type BasketItem = {
-  id: string;
+  id: string;                      // the line's own key, always present, never repeats
   product_name: string;
   store_name: string;
   price: number;                   // the regular shelf price
@@ -22,4 +24,7 @@ export type BasketItem = {
   deal: DealInput | null;
   quantity: number;
   source: 'scan' | 'manual';
+  barcode: string | null;          // the product's own barcode, when known
+  image_url: string | null;        // product photo, from a barcode lookup
+  category: CategoryId | null;     // for the icon when there's no photo
 };
