@@ -27,8 +27,7 @@ export default function ScanScreen() {
           id: newLineId(), product_name: 'Test beans', store_name: 'Tesco',
           price: 1.2, club_card_price: null, club_card_name: 'Tesco Clubcard',
           deal: null, quantity: 1, source: 'manual',
-        })}
-      >
+        })}>
         Add test item
       </Button>
       <Button variant="secondary" onPress={clearBasket}>Clear basket</Button>
