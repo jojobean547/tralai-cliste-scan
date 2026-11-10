@@ -20,12 +20,20 @@ const TIMEOUT_MS = 8000; // give up on one database after 8 seconds
 
 export type FetchResult =
   | { kind: 'found'; product: LookupProduct }
-  | { kind: 'notFound' }       // every database answered, none has it
-  | { kind: 'unavailable' };   // no internet, or a database didn't answer
+  | { kind: 'notFound' }                       // the food database answered and nobody has it
+  | { kind: 'unavailable'; reason: string };   // the food database couldn't answer, and why
 
-type OneAnswer = FetchResult | { kind: 'noConnection' };
+// What one database said. 'failed' carries the reason, e.g. 'busy (HTTP 429)'.
+type OneAnswer =
+  | { kind: 'found'; product: LookupProduct }
+  | { kind: 'notFound' }
+  | { kind: 'failed'; reason: string; retry: boolean } // retry = worth asking once more
+  | { kind: 'noConnection'; reason: string };
 
-async function askOne(host: string, source: ProductSource, barcode: string): Promise<OneAnswer> {
+const RETRY_WAIT_MS = 2000;
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function askOnce(host: string, source: ProductSource, barcode: string): Promise<OneAnswer> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
@@ -34,30 +42,46 @@ async function askOne(host: string, source: ProductSource, barcode: string): Pro
       signal: controller.signal,
     });
     if (res.status === 404) return { kind: 'notFound' };
-    if (!res.ok) return { kind: 'unavailable' }; // busy or down, e.g. 429 or 503
+    if (res.status === 429) return { kind: 'failed', reason: 'too many requests (HTTP 429)', retry: true };
+    if (res.status >= 500) return { kind: 'failed', reason: `server problem (HTTP ${res.status})`, retry: true };
+    if (!res.ok) return { kind: 'failed', reason: `refused (HTTP ${res.status})`, retry: false };
     let reply: unknown;
     try {
       reply = await res.json();
     } catch {
-      return { kind: 'unavailable' };
+      return { kind: 'failed', reason: 'reply was not readable', retry: true };
     }
     const product = parseProductReply(reply, barcode, source, new Date());
     return product ? { kind: 'found', product } : { kind: 'notFound' };
   } catch {
-    // fetch itself failed or timed out: most likely no signal
-    return { kind: 'noConnection' };
+    // fetch itself failed: no signal, or the database took too long
+    return { kind: 'noConnection', reason: controller.signal.aborted ? `no answer within ${TIMEOUT_MS / 1000} s` : 'no internet connection' };
   } finally {
     clearTimeout(timer);
   }
 }
 
+// A busy or briefly broken database gets one more try after a short wait
+async function askOne(host: string, source: ProductSource, barcode: string): Promise<OneAnswer> {
+  const first = await askOnce(host, source, barcode);
+  if (first.kind !== 'failed' || !first.retry) return first;
+  await sleep(RETRY_WAIT_MS);
+  return askOnce(host, source, barcode);
+}
+
+// Food first, then beauty, then household. The food database decides:
+// if it couldn't answer, the result is 'unavailable'. If it answered "not found"
+// and a later one couldn't answer, the result is still 'notFound', since
+// groceries are almost always in the food database.
 export async function fetchProduct(barcode: string): Promise<FetchResult> {
-  let missedOne = false;
-  for (const { host, source } of OFF_HOSTS) {
+  for (const [i, { host, source }] of OFF_HOSTS.entries()) {
     const answer = await askOne(host, source, barcode);
     if (answer.kind === 'found') return answer;
-    if (answer.kind === 'noConnection') return { kind: 'unavailable' }; // don't wait on the other two
-    if (answer.kind === 'unavailable') missedOne = true;
+    if (answer.kind === 'noConnection') {
+      // don't wait on the others
+      return i === 0 ? { kind: 'unavailable', reason: answer.reason } : { kind: 'notFound' };
+    }
+    if (answer.kind === 'failed' && i === 0) return { kind: 'unavailable', reason: `${source}: ${answer.reason}` };
   }
-  return missedOne ? { kind: 'unavailable' } : { kind: 'notFound' };
+  return { kind: 'notFound' };
 }
