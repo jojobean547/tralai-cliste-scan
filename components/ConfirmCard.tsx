@@ -12,6 +12,7 @@ import { TouchTargets } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
 import type { ConfirmForm, DealChoice, FormErrors } from '@/lib/confirmForm';
 import type { LookupStatus, LookupTone } from '@/lib/productLookup';
+import { useState } from 'react';
 import { Image, Keyboard, Pressable, Switch, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
 // Everything on the card is a compact 40 high (text boxes, deal choices, the
@@ -48,6 +49,8 @@ type Props = {
   suggestion?: { name: string; imageUrl: string | null } | null;
   onUseSuggestion?: () => void;
   onRejectSuggestion?: () => void;
+  // Everything the camera read on a scanned label, shown on request for checking
+  readText?: string | null;
 };
 
 // A labelled text box. It must live outside ConfirmCard: a component defined
@@ -105,7 +108,8 @@ export function ConfirmCard(props: Props) {
   const lookingUp = lookupStatus === 'loading';
   const found = lookupStatus === 'found';
 
-  const { lookupTone, suggestion, onUseSuggestion, onRejectSuggestion } = props;
+  const { lookupTone, suggestion, onUseSuggestion, onRejectSuggestion, readText } = props;
+  const [showRead, setShowRead] = useState(false);
 
   // Close the keyboard first, so the result shows up instead of hiding behind it
   const tapLookUp = () => {
@@ -417,6 +421,26 @@ export function ConfirmCard(props: Props) {
         <Text style={label}>Category</Text>
         <CategoryPicker value={form.category} onChange={(c) => onChange('category', c)} />
       </View>
+
+      {!!readText && (
+        <View style={{ gap: spacing.sm }}>
+          <Pressable
+            onPress={() => setShowRead((v) => !v)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showRead }}
+            style={{ minHeight: FIELD_HEIGHT, justifyContent: 'center' }}
+          >
+            <Text style={{ fontSize: typography.bodySmall, fontWeight: typography.semibold, color: colors.primaryGreen }}>
+              {showRead ? 'Hide what the camera read' : 'Show what the camera read'}
+            </Text>
+          </Pressable>
+          {showRead && (
+            <Card>
+              <Text selectable style={{ fontSize: typography.bodySmall, color: colors.textPrimary }}>{readText}</Text>
+            </Card>
+          )}
+        </View>
+      )}
 
       <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
         <Button variant="secondary" onPress={onCancel} fullWidth={false} style={{ paddingHorizontal: spacing.xl }}>Cancel</Button>

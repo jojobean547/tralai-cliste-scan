@@ -2,6 +2,7 @@
 // which step you're on, and the confirm card while it's being filled in.
 // The rules themselves live in lib/confirmForm.ts. Barcode look-ups come from
 // hooks/useProductLookup.ts; what they fill in is in lib/productLookup.ts.
+// A photographed price label is read by hooks/useLabelScanner.ts.
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -13,10 +14,12 @@ import {
   type ConfirmForm, type DealChoice, type FormErrors,
 } from '../lib/confirmForm';
 import { barcodeKind } from '../lib/barcode';
+import type { LabelScan } from '../lib/labelScan';
 import type { LookupProduct } from '../lib/openFoodFacts';
 import { applyProduct, lookupMessage, lookupTone, nameForCard } from '../lib/productLookup';
 import { useBarcodeScanner } from './useBarcodeScanner';
 import { useBasket } from './useBasket';
+import { useLabelScanner } from './useLabelScanner';
 import { useProductLookup } from './useProductLookup';
 
 const STORAGE_KEY = 'tralai.trip.v1';
@@ -34,6 +37,9 @@ export function useScanScreen() {
   const [notes, setNotes] = useState<string[]>([]);
   const [showErrors, setShowErrors] = useState(false); // only after the first "Add" tap
   const [lastAdded, setLastAdded] = useState<string | null>(null);
+  // How the card was filled: from a label photo, or typed in
+  const [source, setSource] = useState<'scan' | 'manual'>('manual');
+  const [readText, setReadText] = useState<string | null>(null); // what the camera read
 
   const lookup = useProductLookup();
   // What the last look-up filled in, so it can be taken back out if the
@@ -64,6 +70,8 @@ export function useScanScreen() {
     setShowErrors(false);
     lookup.reset();
     filledBy.current = null;
+    setSource('manual');
+    setReadText(null);
   };
 
   const { reset: resetLookup } = lookup;
@@ -119,6 +127,18 @@ export function useScanScreen() {
     lookUpBarcode(barcode, nameWasFilled ? '' : form.name);
   });
 
+  // A photographed label fills the card; a barcode printed on it is looked up straight away
+  const label = useLabelScanner(store, (scan: LabelScan) => {
+    resetCard();
+    setForm(scan.form);
+    setNotes(scan.notes);
+    setSource('scan');
+    setReadText(scan.readText);
+    setLastAdded(null);
+    setEntering(true);
+    if (scan.barcode) lookUpBarcode(scan.barcode, '');
+  });
+
   return {
     loaded,
     step,
@@ -144,6 +164,17 @@ export function useScanScreen() {
       setEntering(false);
       resetCard();
     },
+
+    scanLabel: label.open,
+    labelCameraOpen: label.isOpen,
+    onLabelPhoto: label.onPhoto,
+    closeLabelCamera: label.close,
+    readingLabel: label.reading,
+    labelMessage: label.message,
+    labelCameraBlocked: label.cameraBlocked,
+    openLabelCameraSettings: label.openSettings,
+    fromScan: source === 'scan',
+    readText,
 
     form,
     notes,
@@ -174,7 +205,7 @@ export function useScanScreen() {
     // Returns false (and shows what's missing) if the card isn't complete yet
     addToBasket: (): boolean => {
       if (!store) return false;
-      const item = formToBasketItem(form, store, clubCard, newLineId(), 'manual');
+      const item = formToBasketItem(form, store, clubCard, newLineId(), source);
       if (!item) {
         setShowErrors(true);
         return false;

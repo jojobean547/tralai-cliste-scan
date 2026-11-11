@@ -1,9 +1,10 @@
 // The Scan screen: pick your store, then add items.
-// Prices are typed in for now; label scanning arrives with the development build.
-// The product barcode can already be scanned with the camera.
+// Photograph the price label (read on the phone by ML Kit), or type the price in.
+// The product barcode can also be scanned with the camera.
 
 import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { ConfirmCard } from '@/components/ConfirmCard';
+import { LabelCamera } from '@/components/LabelCamera';
 import { StorePicker } from '@/components/StorePicker';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -13,7 +14,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { euro } from '@/lib/basketDisplay';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ScanScreen() {
@@ -61,26 +62,53 @@ export default function ScanScreen() {
                 </Card>
               )}
 
-              {/* The camera arrives later; until then this area explains what it will do */}
-              <View
-                style={{
-                  minHeight: 200, borderWidth: 2, borderStyle: 'dashed', borderColor: colors.border, borderRadius: radii.lg,
-                  backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.sm,
-                }}
-              >
-                <MaterialCommunityIcons name="camera-outline" size={44} color={colors.textSecondary} />
-                <Text style={{ fontSize: typography.body, color: colors.textSecondary, textAlign: 'center' }}>
-                  Scanning price labels with the camera is coming soon
-                </Text>
-              </View>
+              {scan.readingLabel ? (
+                <View
+                  accessibilityLiveRegion="polite"
+                  style={{
+                    minHeight: 200, borderRadius: radii.lg, backgroundColor: colors.surfaceAlt,
+                    alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.md,
+                  }}
+                >
+                  <ActivityIndicator size="large" color={colors.primaryGreen} />
+                  <Text style={{ fontSize: typography.body, color: colors.textPrimary }}>Reading the label…</Text>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={scan.scanLabel}
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan price label"
+                  style={({ pressed }) => ({
+                    minHeight: 200, borderRadius: radii.lg, backgroundColor: colors.primaryGreen, opacity: pressed ? 0.85 : 1,
+                    alignItems: 'center', justifyContent: 'center', padding: spacing.xl, gap: spacing.sm,
+                  })}
+                >
+                  <MaterialCommunityIcons name="camera-outline" size={56} color={colors.buttonPrimaryText} />
+                  <Text style={{ fontSize: typography.heading2, fontWeight: typography.bold, color: colors.buttonPrimaryText }}>Scan price label</Text>
+                  <Text style={{ fontSize: typography.bodySmall, color: colors.buttonPrimaryText, textAlign: 'center' }}>
+                    Take a photo of the shelf label
+                  </Text>
+                </Pressable>
+              )}
 
-              <Button variant="primary" onPress={scan.startManualEntry}>Type the price in</Button>
+              {!!scan.labelMessage && (
+                <Card variant="gold">
+                  <Text style={{ fontSize: typography.body, color: colors.textPrimary }}>{scan.labelMessage}</Text>
+                  {scan.labelCameraBlocked && (
+                    <Button variant="secondary" size="sm" onPress={scan.openLabelCameraSettings} style={{ marginTop: spacing.sm }}>
+                      Open phone Settings
+                    </Button>
+                  )}
+                </Card>
+              )}
+
+              <Button variant="secondary" onPress={scan.startManualEntry} disabled={scan.readingLabel}>Type the price in</Button>
             </>
           )}
 
           {scan.step === 'confirm' && !!scan.store && (
             <ConfirmCard
-              title="Add an item"
+              title={scan.fromScan ? 'Check the label' : 'Add an item'}
               form={scan.form}
               errors={scan.errors}
               notes={scan.notes}
@@ -101,6 +129,7 @@ export default function ScanScreen() {
               suggestion={scan.suggestion}
               onUseSuggestion={scan.acceptSuggestion}
               onRejectSuggestion={scan.rejectSuggestion}
+              readText={scan.readText}
             />
           )}
         </ScrollView>
@@ -126,6 +155,9 @@ export default function ScanScreen() {
 
       {/* Full-screen camera for the product barcode; opened from the confirm card */}
       <BarcodeScanner visible={scan.scannerOpen} onScanned={scan.onBarcodeScanned} onCancel={scan.closeScanner} />
+
+      {/* Full-screen camera for the price label */}
+      <LabelCamera visible={scan.labelCameraOpen} onPhoto={scan.onLabelPhoto} onCancel={scan.closeLabelCamera} />
     </SafeAreaView>
   );
 }
