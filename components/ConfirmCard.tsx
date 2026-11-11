@@ -14,11 +14,16 @@ import type { ConfirmForm, DealChoice, FormErrors } from '@/lib/confirmForm';
 import type { LookupStatus, LookupTone } from '@/lib/productLookup';
 import { Image, Keyboard, Pressable, Switch, Text, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 
-// The − and + buttons look compact (40 high), matching the basket, but an
-// invisible margin (hitSlop) keeps the area you can tap at the full 56 high
-// for older shoppers.
-const STEP_HEIGHT = 40;
+// Everything on the card is a compact 40 high (text boxes, deal choices, the
+// − and + buttons, Scan and Look up), so less scrolling is needed. The − and +
+// buttons get an invisible margin (hitSlop) so the area you can tap stays the
+// full 56 high for older shoppers. "Add to basket" stays full size.
+const FIELD_HEIGHT = 40;
+const STEP_HEIGHT = FIELD_HEIGHT;
 const STEP_WIDTH = 48;
+
+// Text inside a 40-high box: no extra padding, or Android cuts the text off
+const fieldText = { height: FIELD_HEIGHT, paddingVertical: 0, textAlignVertical: 'center' as const };
 
 type Props = {
   title: string;
@@ -66,7 +71,7 @@ function LabeledInput(p: LabeledInputProps) {
         {p.label}
       </Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
-        {!!p.prefix && <Text style={{ fontSize: typography.heading3, color: colors.textPrimary }}>{p.prefix}</Text>}
+        {!!p.prefix && <Text style={{ fontSize: typography.body, fontWeight: typography.semibold, color: colors.textPrimary }}>{p.prefix}</Text>}
         <TextInput
           value={p.value}
           onChangeText={p.onChangeText}
@@ -76,14 +81,14 @@ function LabeledInput(p: LabeledInputProps) {
           accessibilityLabel={p.label}
           style={{
             flex: 1,
-            minHeight: TouchTargets.minHeight,
+            ...fieldText,
             paddingHorizontal: spacing.md,
             borderRadius: radii.md,
             borderWidth: p.error ? 2 : 1,
             borderColor: p.error ? colors.error : colors.border,
             backgroundColor: colors.surface,
             color: colors.textPrimary,
-            fontSize: typography.heading3,
+            fontSize: typography.body,
           }}
         />
       </View>
@@ -139,14 +144,14 @@ export function ConfirmCard(props: Props) {
   const hint = { fontSize: typography.caption, color: colors.textSecondary, marginTop: spacing.xs };
   const errorText = { fontSize: typography.caption, color: colors.error, marginTop: spacing.xs };
   const inputStyle = (hasError: boolean) => ({
-    minHeight: TouchTargets.minHeight,
+    ...fieldText,
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
     borderWidth: hasError ? 2 : 1,
     borderColor: hasError ? colors.error : colors.border,
     backgroundColor: colors.surface,
     color: colors.textPrimary,
-    fontSize: typography.heading3,
+    fontSize: typography.body,
   });
 
   const smallBox = (hasError: boolean) => ({ ...inputStyle(hasError), width: 72, textAlign: 'center' as const });
@@ -165,7 +170,7 @@ export function ConfirmCard(props: Props) {
         accessibilityRole="button"
         accessibilityState={{ selected }}
         style={{
-          minHeight: TouchTargets.minHeight - 8,
+          height: FIELD_HEIGHT,
           paddingHorizontal: spacing.md,
           justifyContent: 'center',
           borderRadius: radii.pill,
@@ -238,10 +243,10 @@ export function ConfirmCard(props: Props) {
               accessibilityLabel="How many for the deal"
               style={smallBox(!!errors.dealQty)}
             />
-            <Text style={{ fontSize: typography.heading3, color: colors.textPrimary }}>for</Text>
+            <Text style={{ fontSize: typography.body, color: colors.textPrimary }}>for</Text>
             {form.dealChoice === 'price' ? (
               <>
-                <Text style={{ fontSize: typography.heading3, color: colors.textPrimary }}>€</Text>
+                <Text style={{ fontSize: typography.body, fontWeight: typography.semibold, color: colors.textPrimary }}>€</Text>
                 <TextInput
                   value={form.dealPriceText}
                   onChangeText={(t) => onChange('dealPriceText', t)}
@@ -334,12 +339,12 @@ export function ConfirmCard(props: Props) {
         <View style={{ gap: spacing.sm }}>
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
             {!!onScanBarcode && (
-              <Button variant="secondary" onPress={tapScan} style={{ flex: 1 }}>
+              <Button variant="secondary" size="sm" onPress={tapScan} style={{ flex: 1 }}>
                 Scan barcode
               </Button>
             )}
             {!!onLookUp && (
-              <Button variant="secondary" onPress={tapLookUp} loading={lookingUp} style={{ flex: 1 }}>
+              <Button variant="secondary" size="sm" onPress={tapLookUp} loading={lookingUp} style={{ flex: 1 }}>
                 Look up
               </Button>
             )}
