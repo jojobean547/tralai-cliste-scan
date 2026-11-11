@@ -3,6 +3,7 @@
 
 import { addLine, newLineId, readSavedBasket, removeLine, setQuantity, summarise, updateLine } from '../lib/basket';
 import { cardsWorthSwitchingOn, describeLine } from '../lib/basketDisplay';
+import { clubCardChoices } from '../constants/stores';
 import type { BasketItem } from '../types';
 
 let failures = 0;
@@ -67,6 +68,9 @@ expect('category picked: its icon', describeLine(item('c', { category: 'dairy_eg
 expect('product photo wins over category', describeLine(item('p', { category: 'drinks', image_url: 'https://x/y.jpg' }), 1, noCard).icon, { kind: 'image', uri: 'https://x/y.jpg' });
 expect('cards worth switching on', cardsWorthSwitchingOn([tesco, item('x')], noCard), ['Tesco Clubcard']);
 expect('nothing to suggest when the card is on', cardsWorthSwitchingOn([tesco], hasCard), []);
+
+// Settings screen: which club cards can be switched on
+expect('club cards in Settings', clubCardChoices().map((c) => `${c.store}: ${c.name}`), ['Lidl: Lidl Plus', 'SuperValu: Real Rewards', 'Tesco: Tesco Clubcard']);
 
 console.log(failures === 0 ? '\nAll checks passed.' : `\n${failures} check(s) failed.`);
 if (failures) process.exitCode = 1;
