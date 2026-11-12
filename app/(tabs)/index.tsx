@@ -6,9 +6,12 @@ import { BarcodeScanner } from '@/components/BarcodeScanner';
 import { ConfirmCard } from '@/components/ConfirmCard';
 import { LabelCamera } from '@/components/LabelCamera';
 import { StorePicker } from '@/components/StorePicker';
+import { AppAlert } from '@/components/ui/AppAlert';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { StoreBadge } from '@/components/ui/StoreBadge';
+import { useAlert } from '@/hooks/useAlert';
+import { useFinishShop } from '@/hooks/useHistory';
 import { useScanScreen } from '@/hooks/useScanScreen';
 import { useTheme } from '@/hooks/useTheme';
 import { euro } from '@/lib/basketDisplay';
@@ -20,6 +23,25 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function ScanScreen() {
   const { colors, typography, spacing, radii } = useTheme();
   const scan = useScanScreen();
+  const shop = useFinishShop();
+  const { showAlert, alertProps } = useAlert();
+
+  // Leaving a store with its items still in the basket: offer to finish that shop first
+  const changeStore = () => {
+    if (!scan.store || !shop.stores.includes(scan.store)) {
+      scan.changeStore();
+      return;
+    }
+    showAlert({
+      title: `Finish your ${scan.store} shop?`,
+      message: `Saves ${shop.summary} to your history and empties the basket. Or keep the items and carry on in another store.`,
+      buttons: [
+        { text: 'Finish shop', onPress: () => { shop.finish(); scan.changeStore(); } },
+        { text: 'Keep in basket', onPress: scan.changeStore },
+        { text: 'Cancel', style: 'cancel' },
+      ],
+    });
+  };
 
   // For a moment at start-up while the saved store is read
   if (!scan.loaded) return <View style={{ flex: 1, backgroundColor: colors.background }} />;
@@ -31,7 +53,7 @@ export default function ScanScreen() {
         <Text style={{ fontSize: typography.heading2, fontWeight: typography.bold, color: colors.textPrimary }}>Tralaí Cliste</Text>
         {!!scan.store && (
           <Pressable
-            onPress={scan.changeStore}
+            onPress={changeStore}
             accessibilityRole="button"
             accessibilityLabel={`Store: ${scan.store}. Tap to change.`}
             style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.xs, minHeight: 48 }}
@@ -158,6 +180,7 @@ export default function ScanScreen() {
 
       {/* Full-screen camera for the price label */}
       <LabelCamera visible={scan.labelCameraOpen} onPhoto={scan.onLabelPhoto} onCancel={scan.closeLabelCamera} />
+      <AppAlert {...alertProps} />
     </SafeAreaView>
   );
 }

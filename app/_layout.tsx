@@ -1,5 +1,6 @@
 import { BasketProvider } from '@/hooks/useBasket';
 import { ClubCardsProvider } from '@/hooks/useClubCards';
+import { HistoryProvider } from '@/hooks/useHistory';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { Stack } from 'expo-router';
 
@@ -8,7 +9,9 @@ export default function RootLayout() {
     <ThemeProvider>
       <ClubCardsProvider>
         <BasketProvider>
-          <Stack screenOptions={{ headerShown: false }} />
+          <HistoryProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </HistoryProvider>
         </BasketProvider>
       </ClubCardsProvider>
     </ThemeProvider>

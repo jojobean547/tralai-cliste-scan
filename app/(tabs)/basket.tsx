@@ -1,12 +1,15 @@
 import { BasketLine } from '@/components/BasketLine';
 import { AppAlert } from '@/components/ui/AppAlert';
+import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAlert } from '@/hooks/useAlert';
 import { useBasket } from '@/hooks/useBasket';
 import { useClubCards } from '@/hooks/useClubCards';
+import { useFinishShop } from '@/hooks/useHistory';
 import { useTheme } from '@/hooks/useTheme';
 import { cardsWorthSwitchingOn, describeLine, euro } from '@/lib/basketDisplay';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -15,6 +18,27 @@ export default function BasketScreen() {
   const { items, loaded, updateQuantity, removeItem, clearBasket, total, itemCount, saving } = useBasket();
   const { hasClubCard } = useClubCards();
   const { showAlert, alertProps } = useAlert();
+  const shop = useFinishShop();
+
+  // Saves the basket to History (one shop per store), empties it, and shows History
+  const confirmFinish = () =>
+    showAlert({
+      title: 'Finish this shop?',
+      message:
+        shop.storeCount > 1
+          ? `Saves ${shop.summary} to your history as separate shops, and empties the basket.`
+          : `Saves ${shop.summary} to your history and empties the basket.`,
+      buttons: [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Finish shop',
+          onPress: () => {
+            shop.finish();
+            router.navigate('/history');
+          },
+        },
+      ],
+    });
 
   // Removing needs a second tap, so a slip of the finger doesn't lose an item
   const confirmRemove = (id: string) =>
@@ -104,6 +128,9 @@ export default function BasketScreen() {
                 Have {cardsToSwitchOn.join(' or ')}? Turn it on in Settings to use club prices.
               </Text>
             )}
+            <Button variant="primary" size="md" onPress={confirmFinish} style={{ marginTop: spacing.xs }}>
+              Finish shop
+            </Button>
           </View>
         </>
       )}
