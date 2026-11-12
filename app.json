@@ -3,6 +3,9 @@
     "name": "Tralaí Cliste",
     "slug": "tralai-cliste-scan",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tralaiclistescan",
@@ -62,6 +65,9 @@
         "projectId": "2feffb9c-fbfb-49f4-9615-f0fa12394ac3"
       }
     },
-    "owner": "tralaicliste"
+    "owner": "tralaicliste",
+    "updates": {
+      "url": "https://u.expo.dev/2feffb9c-fbfb-49f4-9615-f0fa12394ac3"
+    }
   }
 }

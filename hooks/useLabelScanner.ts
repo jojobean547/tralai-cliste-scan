@@ -22,7 +22,8 @@ const READ_WIDTH = 1600;
 
 const READ_FAILED = "Couldn't read the photo. Please try again, or type the price in.";
 
-export function useLabelScanner(store: string | null, onScanned: (scan: LabelScan) => void) {
+// photoUri: the photo as it was read (shrunk), for saving with the scan
+export function useLabelScanner(store: string | null, onScanned: (scan: LabelScan, photoUri: string) => void) {
   const [, requestPermission] = useCameraPermissions();
   const [isOpen, setOpen] = useState(false);
   const [reading, setReading] = useState(false);
@@ -65,7 +66,7 @@ export function useLabelScanner(store: string | null, onScanned: (scan: LabelSca
       const result = await recognizeText(uri);
       const scan = scanToForm(mlKitToOcr(result), store);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      latest.current(scan);
+      latest.current(scan, uri);
     } catch {
       setProblem(READ_FAILED);
     } finally {

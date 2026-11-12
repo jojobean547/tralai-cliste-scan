@@ -12,6 +12,7 @@ import type { OcrPiece } from './labelParser/extractFromOcr';
 import { findBarcodes } from './labelParser/findBarcode';
 import { parseLabel, PARSER_VERSION } from './labelParser/parseLabel';
 import { toConfirmDraft } from './labelParser/toConfirmDraft';
+import { dealValue, type Values } from './scanLog';
 
 export type LabelScan = {
   form: ConfirmForm;
@@ -19,6 +20,8 @@ export type LabelScan = {
   barcode: string | null;   // the product barcode printed on the label, if any
   readText: string;         // everything that was read, one piece per line, for checking
   parserVersion: string;
+  pieces: OcrPiece[];       // what was read, kept for the saved scan (lib/scanLog.ts)
+  read: Values;             // what the parser filled in, before the shopper checked it
 };
 
 export function scanToForm(pieces: OcrPiece[], store: string): LabelScan {
@@ -37,5 +40,7 @@ export function scanToForm(pieces: OcrPiece[], store: string): LabelScan {
     barcode,
     readText: pieces.map((p) => p[1]).join('\n'),
     parserVersion: PARSER_VERSION,
+    pieces,
+    read: { price: draft.price, club_card_price: draft.club_card_price, deal: dealValue(draft.deal) },
   };
 }

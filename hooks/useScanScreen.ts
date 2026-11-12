@@ -2,7 +2,8 @@
 // which step you're on, and the confirm card while it's being filled in.
 // The rules themselves live in lib/confirmForm.ts. Barcode look-ups come from
 // hooks/useProductLookup.ts; what they fill in is in lib/productLookup.ts.
-// A photographed price label is read by hooks/useLabelScanner.ts.
+// A photographed price label is read by hooks/useLabelScanner.ts; when it's added
+// to the basket, the scan is saved for testing (hooks/useScanLog.ts).
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,11 +17,13 @@ import {
 import { barcodeKind } from '../lib/barcode';
 import type { LabelScan } from '../lib/labelScan';
 import type { LookupProduct } from '../lib/openFoodFacts';
+import { dealValue, newScanId, SCAN_RECORD_VERSION } from '../lib/scanLog';
 import { applyProduct, lookupMessage, lookupTone, nameForCard } from '../lib/productLookup';
 import { useBarcodeScanner } from './useBarcodeScanner';
 import { useBasket } from './useBasket';
 import { useLabelScanner } from './useLabelScanner';
 import { useProductLookup } from './useProductLookup';
+import { saveScan } from './useScanLog';
 
 const STORAGE_KEY = 'tralai.trip.v1';
 
@@ -40,6 +43,8 @@ export function useScanScreen() {
   // How the card was filled: from a label photo, or typed in
   const [source, setSource] = useState<'scan' | 'manual'>('manual');
   const [readText, setReadText] = useState<string | null>(null); // what the camera read
+  // The scan behind the card, saved for testing once the item is added
+  const pendingScan = useRef<{ scan: LabelScan; photoUri: string } | null>(null);
 
   const lookup = useProductLookup();
   // What the last look-up filled in, so it can be taken back out if the
@@ -72,6 +77,7 @@ export function useScanScreen() {
     filledBy.current = null;
     setSource('manual');
     setReadText(null);
+    pendingScan.current = null;
   };
 
   const { reset: resetLookup } = lookup;
@@ -128,8 +134,9 @@ export function useScanScreen() {
   });
 
   // A photographed label fills the card; a barcode printed on it is looked up straight away
-  const label = useLabelScanner(store, (scan: LabelScan) => {
+  const label = useLabelScanner(store, (scan: LabelScan, photoUri: string) => {
     resetCard();
+    pendingScan.current = { scan, photoUri };
     setForm(scan.form);
     setNotes(scan.notes);
     setSource('scan');
@@ -211,6 +218,26 @@ export function useScanScreen() {
         return false;
       }
       addItem(item);
+
+      // Save the scan with what was actually added: that's the right answer for testing
+      const pending = pendingScan.current;
+      if (source === 'scan' && pending) {
+        const now = new Date();
+        saveScan({
+          version: SCAN_RECORD_VERSION,
+          id: newScanId(now),
+          created_at: now.toISOString(),
+          store,
+          parser_version: pending.scan.parserVersion,
+          ocr: pending.scan.pieces,
+          photo: null,
+          read: pending.scan.read,
+          confirmed: { price: item.price, club_card_price: item.club_card_price, deal: dealValue(item.deal) },
+          product_name: item.product_name,
+          barcode: item.barcode,
+        }, pending.photoUri);
+      }
+
       setLastAdded(`${item.product_name || 'Item'} added, ${euro(item.price)}${item.quantity > 1 ? ` × ${item.quantity}` : ''}`);
       setEntering(false);
       resetCard();
