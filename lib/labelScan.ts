@@ -10,7 +10,7 @@
 import { formFromDraft, type ConfirmForm } from './confirmForm';
 import type { OcrPiece } from './labelParser/extractFromOcr';
 import { findBarcodes } from './labelParser/findBarcode';
-import { parseLabel, PARSER_VERSION } from './labelParser/parseLabel';
+import { parseLabel, PARSER_VERSION, type PhotoFrame } from './labelParser/parseLabel';
 import { toConfirmDraft } from './labelParser/toConfirmDraft';
 import { dealValue, type Values } from './scanLog';
 
@@ -22,10 +22,12 @@ export type LabelScan = {
   parserVersion: string;
   pieces: OcrPiece[];       // what was read, kept for the saved scan (lib/scanLog.ts)
   read: Values;             // what the parser filled in, before the shopper checked it
+  frame: PhotoFrame | null; // the photo's size, saved with the scan
 };
 
-export function scanToForm(pieces: OcrPiece[], store: string): LabelScan {
-  const parsed = parseLabel(pieces, store);
+// frame: the photo's width and height, so the price in the camera frame wins (parser 1.3.0)
+export function scanToForm(pieces: OcrPiece[], store: string, frame?: PhotoFrame): LabelScan {
+  const parsed = parseLabel(pieces, store, frame);
   const draft = toConfirmDraft(parsed, store);
   const barcode = findBarcodes(pieces)[0] ?? null;
   draft.barcode = barcode;
@@ -42,5 +44,6 @@ export function scanToForm(pieces: OcrPiece[], store: string): LabelScan {
     parserVersion: PARSER_VERSION,
     pieces,
     read: { price: draft.price, club_card_price: draft.club_card_price, deal: dealValue(draft.deal) },
+    frame: frame ?? null,
   };
 }

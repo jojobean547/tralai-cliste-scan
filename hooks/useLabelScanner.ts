@@ -2,8 +2,9 @@
 // Copyright (C) 2026 Tralaí Cliste Contributors
 //
 // Scanning a shelf price label: asks for the camera, opens the label camera
-// (components/LabelCamera.tsx), shrinks the photo, reads it with ML Kit on the
-// phone (no internet needed), and hands back a filled-in confirm card.
+// (components/LabelCamera.tsx), cuts the photo to the box the shopper checked,
+// shrinks it, reads it with ML Kit on the phone (no internet needed), and hands
+// back a filled-in confirm card.
 // What happens to what was read is in lib/labelScan.ts.
 // hooks/useScanScreen.ts uses this.
 
@@ -16,6 +17,7 @@ import { Linking } from 'react-native';
 import { mlKitToOcr } from '../lib/labelParser/fromMlKit';
 import { scanToForm, type LabelScan } from '../lib/labelScan';
 import { cameraMessage, type CameraAccess } from '../lib/scanner';
+import type { LabelPhoto } from '../lib/cropBox';
 
 // Wide enough for the small print on labels, small enough to read quickly
 const READ_WIDTH = 1600;
@@ -51,20 +53,26 @@ export function useLabelScanner(store: string | null, onScanned: (scan: LabelSca
   };
 
   // Called by the camera screen with the photo it took
-  const onPhoto = async (photo: { uri: string; width: number }) => {
+  const onPhoto = async (photo: LabelPhoto) => {
     if (!store) return;
     setOpen(false);
     setReading(true);
     try {
+      // Only the part inside the box, no wider than READ_WIDTH
       let uri = photo.uri;
-      if (photo.width > READ_WIDTH) {
-        const shrink = ImageManipulator.manipulate(photo.uri);
-        shrink.resize({ width: READ_WIDTH });
-        const image = await shrink.renderAsync();
-        uri = (await image.saveAsync({ compress: 0.9, format: SaveFormat.JPEG })).uri;
+      let frame = { width: photo.width, height: photo.height };
+      const width = photo.crop ? photo.crop.width : photo.width;
+      if (photo.crop || width > READ_WIDTH) {
+        const edit = ImageManipulator.manipulate(photo.uri);
+        if (photo.crop) edit.crop(photo.crop);
+        if (width > READ_WIDTH) edit.resize({ width: READ_WIDTH });
+        const image = await edit.renderAsync();
+        const saved = await image.saveAsync({ compress: 0.9, format: SaveFormat.JPEG });
+        uri = saved.uri;
+        frame = { width: saved.width, height: saved.height };
       }
       const result = await recognizeText(uri);
-      const scan = scanToForm(mlKitToOcr(result), store);
+      const scan = scanToForm(mlKitToOcr(result), store, frame);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       latest.current(scan, uri);
     } catch {

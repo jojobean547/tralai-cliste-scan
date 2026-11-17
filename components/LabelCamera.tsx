@@ -1,20 +1,25 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Tralaí Cliste Contributors
 //
-// The camera screen for photographing a shelf price label. UI only: what happens
-// with the photo is in hooks/useLabelScanner.ts.
+// The camera screen for photographing a shelf price label, then a check step
+// (components/PhotoCropper.tsx) to fit a box around the label before it's read.
+// The box starts where the white frame was. UI only: what happens with the photo
+// is in hooks/useLabelScanner.ts.
 // White on black, whatever the app theme, so it reads well over the camera picture.
 
 import { TouchTargets } from '@/constants/theme';
 import { useTheme } from '@/hooks/useTheme';
+import { coversPhoto, frameToPhoto, toCrop, type Box, type LabelPhoto, type Size } from '@/lib/cropBox';
 import { CameraView } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { PhotoCropper } from './PhotoCropper';
+
 
 type Props = {
   visible: boolean;
-  onPhoto: (photo: { uri: string; width: number }) => void;
+  onPhoto: (photo: LabelPhoto) => void;
   onCancel: () => void;
 };
 
@@ -29,12 +34,17 @@ export function LabelCamera({ visible, onPhoto, onCancel }: Props) {
   const [ready, setReady] = useState(false);
   const [taking, setTaking] = useState(false);
   const [light, setLight] = useState(false);
+  // The photo waiting to be checked, and where the frame fell on it
+  const [taken, setTaken] = useState<{ photo: { uri: string; width: number; height: number }; box: Box } | null>(null);
+  const [screen, setScreen] = useState<Size>({ width: 0, height: 0 });
+  const [frame, setFrame] = useState<Box>({ x: 0, y: 0, width: 0, height: 0 });
 
   // The camera starts fresh each time the screen opens
   useEffect(() => {
     if (!visible) {
       setReady(false);
       setLight(false);
+      setTaken(null);
     }
   }, [visible]);
 
@@ -43,7 +53,10 @@ export function LabelCamera({ visible, onPhoto, onCancel }: Props) {
     setTaking(true);
     try {
       const photo = await camera.current.takePictureAsync({ quality: 0.9, shutterSound: false });
-      if (photo?.uri) onPhoto({ uri: photo.uri, width: photo.width });
+      if (photo?.uri) {
+        const size = { width: photo.width, height: photo.height };
+        setTaken({ photo: { uri: photo.uri, ...size }, box: frameToPhoto(frame, screen, size) });
+      }
     } catch {
       // Leave the camera open so the shopper can simply try again
     } finally {
@@ -62,10 +75,22 @@ export function LabelCamera({ visible, onPhoto, onCancel }: Props) {
     justifyContent: 'center' as const,
   };
 
+  const acceptPhoto = (box: Box) => {
+    if (!taken) return;
+    const size = { width: taken.photo.width, height: taken.photo.height };
+    onPhoto({ ...taken.photo, crop: coversPhoto(box, size) ? null : toCrop(box, size) });
+  };
+
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onCancel} statusBarTranslucent>
+    <Modal visible={visible} animationType="slide" onRequestClose={taken ? () => setTaken(null) : onCancel} statusBarTranslucent>
       <SafeAreaProvider>
-        <View style={{ flex: 1, backgroundColor: BLACK }}>
+        {taken ? (
+          <PhotoCropper photo={taken.photo} initialBox={taken.box} onUse={acceptPhoto} onRetake={() => setTaken(null)} />
+        ) : (
+        <View
+          style={{ flex: 1, backgroundColor: BLACK }}
+          onLayout={(e) => setScreen({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
+        >
           {visible && (
             <CameraView
               ref={camera}
@@ -82,13 +107,14 @@ export function LabelCamera({ visible, onPhoto, onCancel }: Props) {
                 Fill the frame with the price label
               </Text>
               <Text style={{ color: WHITE, fontSize: typography.bodySmall, textAlign: 'center', marginTop: spacing.xs }}>
-                Hold the phone straight on, then tap the white button
+                Tap the white button. If the label shines, tilt the phone a little.
               </Text>
             </View>
 
             {/* The frame to aim at, about the shape of a shelf label */}
             <View
               accessible={false}
+              onLayout={(e) => setFrame(e.nativeEvent.layout)}
               style={{ alignSelf: 'center', width: '92%', aspectRatio: 1.6, borderWidth: 3, borderColor: WHITE, borderRadius: radii.md }}
             />
 
@@ -127,6 +153,7 @@ export function LabelCamera({ visible, onPhoto, onCancel }: Props) {
             </View>
           </SafeAreaView>
         </View>
+        )}
       </SafeAreaProvider>
     </Modal>
   );

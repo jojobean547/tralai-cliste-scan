@@ -16,10 +16,11 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { fixReadings } from '../lib/labelParser/fromMlKit';
 import { parseLabel, PARSER_VERSION } from '../lib/labelParser/parseLabel';
 import { toConfirmDraft } from '../lib/labelParser/toConfirmDraft';
 import {
-  dealValue, passesPriceMark, PRICE_PASS_MARK, readRecord, scoreScan, summarise, tallyText,
+  dealValue, OLD_SCAN_FRAME, passesPriceMark, PRICE_PASS_MARK, readRecord, scoreScan, summarise, tallyText,
   type ScanRecord, type Summary, type Values,
 } from '../lib/scanLog';
 
@@ -42,9 +43,10 @@ if (records.length === 0) {
   process.exit(1);
 }
 
-// The parser as it is today, on the reading saved from the phone
+// Today's parser and ML Kit reading fixes, on the reading saved from the phone.
+// Re-applying the fixes is safe: a reading that's already fixed stays the same.
 function readNow(r: ScanRecord): Values {
-  const draft = toConfirmDraft(parseLabel(r.ocr, r.store), r.store);
+  const draft = toConfirmDraft(parseLabel(fixReadings(r.ocr), r.store, r.frame ?? OLD_SCAN_FRAME), r.store);
   return { price: draft.price, club_card_price: draft.club_card_price, deal: dealValue(draft.deal) };
 }
 

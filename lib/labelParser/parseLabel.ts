@@ -21,7 +21,17 @@ export type ParseResult = ParsedLabel & {
 };
 
 // Bump this whenever the rules change, so test-mode records say which rules produced them.
-export const PARSER_VERSION = '1.2.0';
+export const PARSER_VERSION = '1.3.0';
+
+// The photo's size, when the label was photographed in the app (1.3.0). Photos taken in
+// store often catch a second label, or a price on the packaging, above or below the one
+// in the camera frame. The frame sits in the middle of the photo, so the price nearest
+// the middle wins among the big ones. Not given for the development labels, which are
+// cropped to one label, so their results are unchanged.
+export type PhotoFrame = { width: number; height: number };
+
+// A price at least this share of the biggest price's height still counts as "big"
+const FRAME_BIG_SHARE = 0.4;
 
 type Piece = {
   text: string;
@@ -152,7 +162,7 @@ function joinSuperscriptCents(pieces: Piece[]): Piece[] {
 // The parser
 // ---------------------------------------------------------------
 
-export function parseLabel(ocrResult: OcrPiece[], store: string): ParseResult {
+export function parseLabel(ocrResult: OcrPiece[], store: string, frame?: PhotoFrame): ParseResult {
   const profile: StoreProfile = profileFor(store);
   const output = emptyOutput();
 
@@ -355,6 +365,15 @@ export function parseLabel(ocrResult: OcrPiece[], store: string): ParseResult {
   if (priceCandidates.length > 0) {
     priceCandidates.sort((a, b) => b.height - a.height);
     output.standard_price = priceCandidates[0].value;
+
+    // 1.3.0: in an app photo, the big price nearest the middle (the camera frame)
+    if (frame && priceCandidates.length > 1) {
+      const tallest = priceCandidates[0].height;
+      const big = priceCandidates.filter((c) => c.height >= FRAME_BIG_SHARE * tallest);
+      const fromMiddle = (c: (typeof priceCandidates)[number]) =>
+        Math.hypot(c.piece.cx - frame.width / 2, c.piece.cy - frame.height / 2);
+      output.standard_price = minBy(big, fromMiddle).value;
+    }
   }
 
   // ----- 7b. PROFILE (Dunnes): price you pay = struck-through price − SAVE amount -----

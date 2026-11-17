@@ -13,6 +13,7 @@
 
 import type { DealInput } from '../types';
 import type { OcrPiece } from './labelParser/extractFromOcr';
+import type { PhotoFrame } from './labelParser/parseLabel';
 
 export const SCAN_RECORD_VERSION = 1;
 
@@ -40,12 +41,16 @@ export type ScanRecord = {
   store: string;
   parser_version: string;      // the parser that read it at the time
   ocr: OcrPiece[];             // what ML Kit read, in the parser's format
+  frame?: PhotoFrame | null;   // the photo's size (saved from parser 1.3.0)
   photo: string | null;        // file name of the photo, if it was saved
   read: Values;                // what the parser filled in
   confirmed: Values;           // what the shopper added after checking
   product_name: string;
   barcode: string | null;
 };
+
+// Scans saved before 1.3.0 have no size; every app photo then was 1600 × 2133
+export const OLD_SCAN_FRAME: PhotoFrame = { width: 1600, height: 2133 };
 
 export function dealValue(d: DealInput | null): DealValue {
   if (!d) return null;

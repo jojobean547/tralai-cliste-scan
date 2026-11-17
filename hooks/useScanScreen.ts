@@ -230,6 +230,7 @@ export function useScanScreen() {
           store,
           parser_version: pending.scan.parserVersion,
           ocr: pending.scan.pieces,
+          frame: pending.scan.frame,
           photo: null,
           read: pending.scan.read,
           confirmed: { price: item.price, club_card_price: item.club_card_price, deal: dealValue(item.deal) },
