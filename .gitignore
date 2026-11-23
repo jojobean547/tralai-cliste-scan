@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# output files for testing
+scripts/output/
+parser-data/off_shelf_barcodes.csv
