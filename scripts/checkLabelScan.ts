@@ -53,6 +53,18 @@ expect('a small 3-digit number left alone', fixReadings([p('€4.39', 0, 0, 300,
 expect('Any and its number joined', fixReadings([p('3', 1056, 799, 1100, 863), p('Any', 986, 801, 1050, 866), p('for €8', 958, 884, 1100, 936)]).map((x) => x[1]), ['Any 3', 'for €8']);
 expect('Any with nothing beside it left alone', fixReadings([p('Any', 0, 0, 60, 60), p('3', 900, 0, 940, 60)]).map((x) => x[1]), ['Any', '3']);
 
+// From the second batch: Dunnes raised cents, and SuperValu prices read as one line
+expect('Dunnes big euros + raised cents', fixReadings([p('4', 897, 22, 1192, 397), p('.99', 1149, 66, 1425, 237), p('€', 755, 277, 845, 391)]).map((x) => x[1]), ['€4.99', '€']);
+expect('…also with the point read on the euros', fixReadings([p('4.', 852, 133, 1198, 537), p('.79', 1167, 112, 1503, 323)]).map((x) => x[1]), ['€4.79']);
+expect('cents far away left alone', fixReadings([p('4', 0, 0, 100, 200), p('.99', 900, 0, 1000, 100)]).map((x) => x[1]), ['4', '.99']);
+expect('cents on their own left alone', fixReadings([p('.20', 837, 155, 1148, 308)]).map((x) => x[1]), ['.20']);
+const pair = fixReadings([p('4.59 3.50', 421, 430, 1206, 584)]);
+expect('two prices in one line split', pair.map((x) => x[1]), ['4.59', '3.50']);
+expect('…each in its own place', pair[0][0][1][0] < pair[1][0][0][0], true);
+const rewards = [p('Rewards Prices', 867, 352, 1365, 418), p('4.59 3.50', 421, 430, 1206, 584), p('€38.25/KGM', 425, 583, 690, 625)];
+const rewardsRead = parseLabel(fixReadings(rewards), 'SuperValu', { width: 1534, height: 959 });
+expect('SuperValu: shelf and Rewards prices the right way round', [rewardsRead.standard_price, rewardsRead.clubcard_price], [4.59, 3.5]);
+
 // ─── Two labels in one photo: the price nearest the middle wins (parser 1.3.0) ───
 const twoLabels = [
   p('Toffee Yum Yum', 452, 859, 700, 915), p('1.09', 767, 964, 860, 1008), p('3 for €3', 957, 927, 1150, 973),

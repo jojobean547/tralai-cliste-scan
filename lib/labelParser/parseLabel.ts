@@ -21,7 +21,9 @@ export type ParseResult = ParsedLabel & {
 };
 
 // Bump this whenever the rules change, so test-mode records say which rules produced them.
-export const PARSER_VERSION = '1.3.0';
+// 1.3.1: no rule change here; ML Kit reading fixes for Dunnes raised cents and
+// SuperValu price pairs (lib/labelParser/fromMlKit.ts), so saved scans say which ran.
+export const PARSER_VERSION = '1.3.1';
 
 // The photo's size, when the label was photographed in the app (1.3.0). Photos taken in
 // store often catch a second label, or a price on the packaging, above or below the one

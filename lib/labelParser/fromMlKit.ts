@@ -17,6 +17,10 @@
 //   "439"             → "4.39"         the point missed on a big price (only when it
 //                                      is by far the biggest text in the photo)
 //   "Any" + "3"       → "Any 3"        Tesco's "Any 3 for €8" read as two pieces
+// From the second batch (crop step, Nov 2026):
+//   "4" + ".99"       → "4.99"         Dunnes' big euros with small raised cents
+//   "4.59 3.50"       → "4.59", "3.50" two prices read as one line (SuperValu
+//                                      shelf and Rewards prices side by side)
 
 import type { OcrPiece } from './extractFromOcr';
 
@@ -110,5 +114,58 @@ export function fixReadings(pieces: OcrPiece[]): OcrPiece[] {
     }
     merged.push(any);
   }
-  return merged.filter((p) => !used.has(p));
+  return splitPricePairs(joinRaisedCents(merged.filter((p) => !used.has(p))));
+}
+
+const boxOf = (l: number, t: number, r: number, b: number): OcrPiece[0] => [[l, t], [r, t], [r, b], [l, b]];
+
+// Big euros with smaller raised cents just to the right: "4" + ".99" → "4.99".
+// (Tesco's "€8" + "35", without the point, is joined by the parser's Tesco profile.)
+function joinRaisedCents(pieces: OcrPiece[]): OcrPiece[] {
+  const euroRe = /^€?\s*(\d{1,3})\.?$/;
+  const centsRe = /^[.,·•](\d{2})$/;
+  const out = [...pieces];
+  for (const cents of pieces) {
+    const cm = centsRe.exec(cents[1].trim());
+    if (!cm || !out.includes(cents)) continue;
+    const euro = out.find((e) => {
+      if (e === cents || !euroRe.test(e[1].trim())) return false;
+      const h = pieceHeight(e);
+      return (
+        pieceHeight(cents) < h &&
+        pieceLeft(cents) > pieceLeft(e) &&
+        pieceLeft(cents) - pieceRight(e) <= 0.6 * h &&
+        pieceTop(cents) >= pieceTop(e) - 0.25 * h &&
+        pieceTop(cents) <= pieceTop(e) + 0.5 * h
+      );
+    });
+    if (!euro) continue;
+    const joined: OcrPiece = [
+      boxOf(pieceLeft(euro), Math.min(pieceTop(euro), pieceTop(cents)), Math.max(pieceRight(euro), pieceRight(cents)), Math.max(pieceBottom(euro), pieceBottom(cents))),
+      `€${euroRe.exec(euro[1].trim())![1]}.${cm[1]}`,
+      1,
+    ];
+    out[out.indexOf(euro)] = joined;
+    out.splice(out.indexOf(cents), 1);
+  }
+  return out;
+}
+
+// Two prices in one line, "4.59 3.50", split into two pieces. Where each one sits
+// is estimated from its share of the characters.
+function splitPricePairs(pieces: OcrPiece[]): OcrPiece[] {
+  const pairRe = /^(€?\s*\d{1,3}\.\d{2})(\s+)(€?\s*\d{1,3}\.\d{2})$/;
+  return pieces.flatMap((p): OcrPiece[] => {
+    const m = pairRe.exec(p[1].trim());
+    if (!m) return [p];
+    const text = p[1].trim();
+    const l = pieceLeft(p), r = pieceRight(p), t = pieceTop(p), b = pieceBottom(p);
+    const at = (chars: number) => l + ((r - l) * chars) / text.length;
+    const firstEnd = at(m[1].length);
+    const secondStart = at(m[1].length + m[2].length);
+    return [
+      [boxOf(l, t, firstEnd, b), m[1], p[2]],
+      [boxOf(secondStart, t, r, b), m[3], p[2]],
+    ];
+  });
 }
