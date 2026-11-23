@@ -20,7 +20,7 @@ import { cameraMessage, type CameraAccess } from '../lib/scanner';
 import type { LabelPhoto } from '../lib/cropBox';
 
 // Wide enough for the small print on labels, small enough to read quickly
-const READ_WIDTH = 1600;
+export const READ_WIDTH = 1600;
 
 const READ_FAILED = "Couldn't read the photo. Please try again, or type the price in.";
 

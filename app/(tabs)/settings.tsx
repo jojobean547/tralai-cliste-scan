@@ -14,6 +14,7 @@ import { clubCardChoices } from '@/constants/stores';
 import { TouchTargets } from '@/constants/theme';
 import { useAlert } from '@/hooks/useAlert';
 import { useClubCards } from '@/hooks/useClubCards';
+import { usePhotoFolderReader } from '@/hooks/usePhotoFolderReader';
 import { useScanLog } from '@/hooks/useScanLog';
 import { useTheme } from '@/hooks/useTheme';
 import { passesPriceMark, PRICE_PASS_MARK, tallyText } from '@/lib/scanLog';
@@ -32,6 +33,7 @@ export default function SettingsScreen() {
   const version = Constants.expoConfig?.version ?? '';
   const scans = useScanLog();
   const { showAlert, alertProps } = useAlert();
+  const folderReader = usePhotoFolderReader();
 
   // Scans are added on the Scan tab, so count them again each time Settings opens
   useFocusEffect(scans.refresh);
@@ -42,6 +44,22 @@ export default function SettingsScreen() {
       result.ok
         ? { title: 'Scans exported', message: `${result.count} scans and their photos are in the folder "${result.folder}".`, buttons: [{ text: 'OK' }] }
         : { title: 'Nothing exported', message: result.message, buttons: [{ text: 'OK' }] },
+    );
+  };
+  const readPhotoFolder = async () => {
+    const result = await folderReader.readFolder();
+    showAlert(
+      result.ok
+        ? {
+            title: 'Photos read',
+            message:
+              `${result.read} photos read` +
+              (result.skipped ? `, ${result.skipped} already read before` : '') +
+              (result.failed ? `, ${result.failed} could not be read` : '') +
+              '. What was read is in mlkit_ocr.json in the same folder.',
+            buttons: [{ text: 'OK' }],
+          }
+        : { title: 'Nothing read', message: result.message, buttons: [{ text: 'OK' }] },
     );
   };
   const confirmDelete = () =>
@@ -180,6 +198,25 @@ export default function SettingsScreen() {
               </Button>
             </View>
           )}
+
+          <Card style={{ gap: spacing.sm }}>
+            <Text style={{ fontSize: typography.body, fontWeight: typography.semibold, color: colors.textPrimary }}>
+              Read a folder of label photos
+            </Text>
+            <Text style={bodyText}>
+              For testing. Reads every photo in a folder you pick, and in the store folders inside it, the same way a
+              scan does. Where there is a {'"cropped"'} folder, only those photos are read. What was read is saved in the
+              folder you picked. Keep the screen on while it reads. If it stops, pick the same folder again to carry on.
+            </Text>
+            {folderReader.progress && (
+              <Text style={{ fontSize: typography.body, color: colors.textPrimary }}>
+                Reading photo {folderReader.progress.done} of {folderReader.progress.total}…
+              </Text>
+            )}
+            <Button variant="secondary" size="md" onPress={readPhotoFolder} loading={folderReader.busy}>
+              Pick a folder of photos
+            </Button>
+          </Card>
         </View>
 
         {/* ── About ── */}
