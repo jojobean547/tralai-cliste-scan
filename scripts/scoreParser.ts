@@ -2,15 +2,25 @@
 // using the capstone's frozen scorer, and compares it with the capstone baseline.
 //
 // Run from the project folder:
-//   npx tsx scripts/scoreParser.ts            summary tables
-//   npx tsx scripts/scoreParser.ts Dunnes     also list every Dunnes label still wrong
+//   npx tsx scripts/scoreParser.ts                   on ML Kit's text, as the phone reads
+//   npx tsx scripts/scoreParser.ts Dunnes            also list every Dunnes label still wrong
+//   npx tsx scripts/scoreParser.ts --paddle          on PaddleOCR's text instead, only to
+//                                                    compare with the capstone
 // It also sorts every shelf price the app parser got blank or wrong by cause
-// (OCR or rules), and writes them to scripts/output/price_failures.csv.
+// (OCR or rules), and writes them to scripts/output/price_failures.csv
+// (price_failures_paddle.csv with --paddle).
+//
+// The ML Kit text is parser-data/mlkit_ocr.json: the 207 cropped capstone photos read
+// on the phone (Settings > Read a folder of label photos). It is ML Kit's own result,
+// turned into pieces by lib/labelParser/fromMlKit.ts here, so a change there counts too.
+// The scorer check at the top always uses PaddleOCR's text (p2b_ocr_raw.json), the
+// text the capstone was scored on: it proves the scorer still matches the notebook.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { extractFromOcr, type OcrPiece, type ParsedLabel } from '../lib/labelParser/extractFromOcr';
-import { PARSER_VERSION, parseLabel } from '../lib/labelParser/parseLabel';
+import { mlKitToOcr, type MlText } from '../lib/labelParser/fromMlKit';
+import { PARSER_VERSION, parseLabel, type PhotoFrame } from '../lib/labelParser/parseLabel';
 import { readCsv } from './csv';
 import { fieldMatch } from './frozenScorer';
 
@@ -23,7 +33,27 @@ const ALL_FIELDS = [
 const DEAL_FIELDS = ['deal_type', 'deal_qty', 'deal_price'];
 const APP_FIELDS = ['standard_price', 'clubcard_price', ...DEAL_FIELDS];
 
-const ocr: Record<string, OcrPiece[]> = JSON.parse(readFileSync(join(DATA, 'p2b_ocr_raw.json'), 'utf-8'));
+const args = process.argv.slice(2);
+const MLKIT = !args.includes('--paddle');
+const SOURCE = MLKIT ? 'ML Kit' : 'PaddleOCR';
+
+const paddleOcr: Record<string, OcrPiece[]> = JSON.parse(readFileSync(join(DATA, 'p2b_ocr_raw.json'), 'utf-8'));
+
+// ML Kit's reading of each photo, and the size of the photo it read (for the
+// photo-middle rule, as in the app)
+type MlReading = { frame: PhotoFrame; mlkit: MlText } | { error: string };
+function loadMlKit(): { ocr: Record<string, OcrPiece[]>; frames: Record<string, PhotoFrame> } {
+  const photos: Record<string, MlReading> = JSON.parse(readFileSync(join(DATA, 'mlkit_ocr.json'), 'utf-8')).photos;
+  const ocr: Record<string, OcrPiece[]> = {};
+  const frames: Record<string, PhotoFrame> = {};
+  for (const [name, r] of Object.entries(photos)) {
+    if ('error' in r) continue; // scored as nothing read
+    ocr[name] = mlKitToOcr(r.mlkit);
+    frames[name] = r.frame;
+  }
+  return { ocr, frames };
+}
+const { ocr, frames } = MLKIT ? loadMlKit() : { ocr: paddleOcr, frames: {} as Record<string, PhotoFrame> };
 const capstoneTruth = readCsv(join(DATA, 'ground_truth_capstone.csv')); // frozen, never edited
 const truth = readCsv(join(DATA, 'ground_truth.csv'));                  // app copy, see ground_truth_changes.md
 
@@ -41,14 +71,15 @@ function score(rows: Record<string, string>[], parse: (gt: Record<string, string
 }
 
 const baselineParse = (gt: Record<string, string>) => extractFromOcr(ocr[gt.image_filename] ?? []);
-const appParse = (gt: Record<string, string>) => parseLabel(ocr[gt.image_filename] ?? [], gt.store);
+const appParse = (gt: Record<string, string>) => parseLabel(ocr[gt.image_filename] ?? [], gt.store, frames[gt.image_filename]);
 
 const share = (rows: Scored[], key: string) => (rows.length ? rows.filter((r) => r.ok[key]).length / rows.length : NaN);
 const pct = (x: number) => (Number.isNaN(x) ? '  –  ' : `${(100 * x).toFixed(0).padStart(3)}%`);
 const change = (before: number, after: number) => (Number.isNaN(after) ? '            ' : `${pct(before)} → ${pct(after)}`);
 
 // ---- 1. Check the scorer still matches the capstone notebook ----
-const check = score(capstoneTruth, baselineParse);
+// (always on PaddleOCR's text, which the capstone was scored on)
+const check = score(capstoneTruth, (gt) => extractFromOcr(paddleOcr[gt.image_filename] ?? []));
 const allFields = (rows: Scored[]) =>
   (100 * rows.reduce((n, r) => n + ALL_FIELDS.filter((f) => r.ok[f]).length, 0)) / (rows.length * ALL_FIELDS.length);
 const holdout = check.filter((r) => r.gt.dev_set.toUpperCase() !== 'TRUE');
@@ -58,7 +89,7 @@ console.log(`  all 207 labels: ${allFields(check).toFixed(1)}%    181 holdout: $
 // ---- 2. Baseline → app parser, per store ----
 const before = score(truth, baselineParse);
 const after = score(truth, appParse);
-console.log(`App parser ${PARSER_VERSION} compared with the capstone baseline (all 207 labels)\n`);
+console.log(`App parser ${PARSER_VERSION} compared with the capstone baseline, both on ${SOURCE}'s text (all 207 labels)\n`);
 console.log('Store       Labels   Price          Club price*     Deal**          Whole label');
 const stores = [...new Set(truth.map((r) => r.store))].sort();
 for (const store of [...stores, 'ALL']) {
@@ -88,7 +119,7 @@ console.log(`\nShelf price, baseline:   ${outcome(before)}`);
 console.log(`Shelf price, app parser: ${outcome(after)}`);
 
 // ---- 3. Optional: list one store's remaining failures ----
-const listStore = process.argv[2];
+const listStore = args.find((a) => !a.startsWith('--'));
 if (listStore) {
   const rows = after.filter((r) => r.gt.store.toLowerCase() === listStore.toLowerCase() && !r.ok.whole);
   console.log(`\n${listStore}: ${rows.length} label(s) with the price, club price or deal still wrong\n`);
@@ -158,7 +189,7 @@ const failures = after
     };
   });
 
-console.log(`\nShelf price failures by cause, app parser ${PARSER_VERSION} (${failures.length} of ${after.length} labels)\n`);
+console.log(`\nShelf price failures by cause, app parser ${PARSER_VERSION} on ${SOURCE}'s text (${failures.length} of ${after.length} labels)\n`);
 const col = (t: string, w: number) => t.padStart(w);
 console.log(`${'Store'.padEnd(11)}${CATEGORIES.map((c) => col(c, 20)).join('')}${col('Total', 8)}`);
 for (const store of [...stores, 'ALL']) {
@@ -175,10 +206,11 @@ for (const c of CATEGORIES) {
 const csvCell = (v: string) => (/[",\n\r]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
 const CSV_COLUMNS = ['label_id', 'store', 'true_price', 'parsed_price', 'category', 'ocr_text'] as const;
 const outDir = join(process.cwd(), 'scripts', 'output');
+const outName = MLKIT ? 'price_failures.csv' : 'price_failures_paddle.csv';
 mkdirSync(outDir, { recursive: true });
 writeFileSync(
-  join(outDir, 'price_failures.csv'),
+  join(outDir, outName),
   [CSV_COLUMNS.join(','), ...failures.map((f) => CSV_COLUMNS.map((k) => csvCell(f[k])).join(','))].join('\n') + '\n',
   'utf-8',
 );
-console.log('\nPer-label rows written to scripts/output/price_failures.csv');
+console.log(`\nPer-label rows written to scripts/output/${outName}`);
